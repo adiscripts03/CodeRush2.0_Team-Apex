@@ -419,11 +419,29 @@ const KERALA_GRID_PTS:[number,number][]=[
   [10.8,75.9],[10.8,76.2],[10.8,76.6],[10.8,77.0],[10.8,77.4],
   [11.7,75.5],[11.7,75.8],[11.7,76.2],[11.7,76.6],[11.7,77.0],
 ]
+const INDIA_SOIL_BOUNDS:[[number,number],[number,number]]=[[6.5,67.5],[37.5,97.5]]
+const INDIA_SOIL_GRID_PTS:[number,number][]=[
+  [34.1,74.8],[33.0,76.5],[31.7,74.8],[31.5,77.5],[30.3,78.0],
+  [29.2,75.7],[28.6,77.2],[27.2,78.0],[26.9,75.8],[26.5,80.9],
+  [26.2,91.7],[25.6,85.1],[25.4,88.0],[24.8,93.9],[23.8,86.4],
+  [23.2,77.4],[23.1,72.6],[22.8,88.4],[22.6,92.7],[22.3,73.2],
+  [21.8,87.2],[21.3,81.6],[21.1,79.1],[20.9,70.4],[20.5,85.8],
+  [19.9,75.3],[19.1,72.9],[18.6,73.8],[18.5,82.0],[17.7,83.3],
+  [17.4,78.5],[16.9,74.6],[16.5,80.6],[15.5,73.8],[15.3,76.5],
+  [14.7,78.8],[13.1,77.6],[13.0,80.2],[12.9,74.9],[12.3,76.6],
+  [11.7,79.8],[11.3,75.8],[10.9,78.7],[10.2,76.4],[9.9,76.3],
+  [9.3,77.3],[8.5,76.9],[8.1,77.5],
+]
 async function fetchSoilGrid():Promise<SoilPoint[]> {
-  const fallback=KERALA_GRID_PTS.map(([lat,lng],i)=>({lat,lng,value:0.28+((i*7)%23)*0.015}))
+  const fallback=INDIA_SOIL_GRID_PTS.map(([lat,lng],i)=>{
+    const westCoastBoost=lng<76&&lat<22 ? 0.08 : 0
+    const aridPenalty=lng<74&&lat>20 ? -0.07 : 0
+    const himalayanBoost=lat>29 ? 0.04 : 0
+    return {lat,lng,value:Math.max(0.08,Math.min(0.52,0.22+westCoastBoost+aridPenalty+himalayanBoost+((i*11)%29)*0.008))}
+  })
   try {
-    const lats=KERALA_GRID_PTS.map(p=>p[0]).join(',')
-    const lngs=KERALA_GRID_PTS.map(p=>p[1]).join(',')
+    const lats=INDIA_SOIL_GRID_PTS.map(p=>p[0]).join(',')
+    const lngs=INDIA_SOIL_GRID_PTS.map(p=>p[1]).join(',')
     const ctrl=new AbortController(); setTimeout(()=>ctrl.abort(),14000)
     const res=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lngs}&current=soil_moisture_0_to_1cm&timezone=Asia%2FKolkata&forecast_days=1`,{signal:ctrl.signal})
     const data=await res.json()
@@ -431,7 +449,7 @@ async function fetchSoilGrid():Promise<SoilPoint[]> {
     return arr.map((d,i)=>{
       const cur=d.current as Record<string,unknown>|undefined
       const val=(cur?.soil_moisture_0_to_1cm as number|undefined)??fallback[i].value
-      return {lat:KERALA_GRID_PTS[i][0],lng:KERALA_GRID_PTS[i][1],value:val}
+      return {lat:INDIA_SOIL_GRID_PTS[i][0],lng:INDIA_SOIL_GRID_PTS[i][1],value:val}
     })
   } catch { return fallback }
 }
@@ -523,29 +541,57 @@ const MAP_TOOLTIP_CSS = `
 
 // ─── Soil canvas overlay ──────────────────────────────────────────────────────
 function buildSoilCanvas(grid:SoilPoint[]):string {
-  const W=600,H=900
+  const W=900,H=1100
   const canvas=document.createElement('canvas')
   canvas.width=W; canvas.height=H
   const ctx=canvas.getContext('2d')!
   ctx.clearRect(0,0,W,H)
-  // Kerala bounding box
-  const N=13.0,S=8.0,WEST=74.5,EAST=77.6
+  const [[S,WEST],[N,EAST]]=INDIA_SOIL_BOUNDS
   const toX=(lng:number)=>((lng-WEST)/(EAST-WEST))*W
   const toY=(lat:number)=>((N-lat)/(N-S))*H
-  // Draw large blended radial gradients per grid point
+
+  const indiaMask:[number,number][]=[
+    [35.8,74.5],[34.0,76.8],[31.5,78.6],[30.0,81.1],[28.0,88.2],
+    [27.3,92.2],[28.6,97.2],[25.0,97.5],[22.6,93.8],[21.8,89.2],
+    [19.5,86.8],[17.2,84.2],[13.0,80.4],[10.0,79.1],[8.0,77.5],
+    [7.4,76.6],[8.8,74.9],[12.0,74.0],[15.6,73.6],[19.4,72.5],
+    [21.8,69.3],[24.2,68.0],[27.8,70.0],[31.0,73.6],
+  ]
+
+  ctx.save()
+  ctx.beginPath()
+  indiaMask.forEach(([lat,lng],i)=>{
+    const x=toX(lng),y=toY(lat)
+    if (i===0) ctx.moveTo(x,y)
+    else ctx.lineTo(x,y)
+  })
+  ctx.closePath()
+  ctx.clip()
+
   grid.forEach(({lat,lng,value})=>{
-    const x=toX(lng),y=toY(lat),r=Math.max(W,H)*0.52
+    const x=toX(lng),y=toY(lat),r=190
     const t=Math.min(1,value/0.5)
     let rc=253,gc=230,bc=138  // yellow (dry)
     if (t>0.75){ rc=37;gc=99;bc=235 }       // blue (saturated)
     else if (t>0.5){ rc=34;gc=211;bc=238 }  // cyan (moist)
     else if (t>0.25){ rc=74;gc=222;bc=128 } // green (moderate)
     const g=ctx.createRadialGradient(x,y,0,x,y,r)
-    g.addColorStop(0,`rgba(${rc},${gc},${bc},0.55)`)
-    g.addColorStop(0.5,`rgba(${rc},${gc},${bc},0.22)`)
+    g.addColorStop(0,`rgba(${rc},${gc},${bc},0.58)`)
+    g.addColorStop(0.62,`rgba(${rc},${gc},${bc},0.22)`)
     g.addColorStop(1,`rgba(${rc},${gc},${bc},0)`)
     ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill()
   })
+
+  ctx.globalCompositeOperation='destination-in'
+  const edge=ctx.createLinearGradient(0,0,0,H)
+  edge.addColorStop(0,'rgba(255,255,255,0.8)')
+  edge.addColorStop(0.08,'rgba(255,255,255,1)')
+  edge.addColorStop(0.92,'rgba(255,255,255,1)')
+  edge.addColorStop(1,'rgba(255,255,255,0.75)')
+  ctx.fillStyle=edge
+  ctx.fillRect(0,0,W,H)
+  ctx.restore()
+
   return canvas.toDataURL()
 }
 
@@ -1017,7 +1063,7 @@ function AdminMap(p:AdminMapProps) {
     })
   },[p.obstacles])
 
-  // Soil — Kerala district polygons (real Overpass boundaries, fallback rects while loading)
+  // Soil moisture — smooth Open-Meteo field with optional district outlines.
   useEffect(()=>{
     if (!soilGrp.current) return
     soilGrp.current.clearLayers()
@@ -1028,42 +1074,40 @@ function AdminMap(p:AdminMapProps) {
       p.soilGrid.forEach(pt=>{const d=(pt.lat-cLat)**2+(pt.lng-cLng)**2;if(d<bestD){bestD=d;best=pt}})
       return best
     }
-    const paintPolygon=(name:string,pts:[number,number][])=>{
+
+    const overlay=L.imageOverlay(
+      buildSoilCanvas(p.soilGrid),
+      INDIA_SOIL_BOUNDS,
+      {opacity:0.72,interactive:false}
+    )
+    overlay.addTo(soilGrp.current)
+
+    p.soilGrid.forEach(pt=>{
+      const [fill,opacity]=soilColor(pt.value)
+      const t=Math.min(1,pt.value/0.5)
+      L.circleMarker([pt.lat,pt.lng],{
+        radius:5+t*4,
+        color:'rgba(255,255,255,0.75)',
+        weight:1,
+        fillColor:fill,
+        fillOpacity:Math.min(0.9,opacity+0.15),
+      })
+        .addTo(soilGrp.current!)
+        .bindTooltip(`Open-Meteo soil moisture<br/><b>${(pt.value*100).toFixed(1)}%</b> · ${t>0.6?'Saturated':t>0.35?'Moist':'Dry'}`,{className:'snt-tip-dark',direction:'top'})
+    })
+
+    const outlineDistrict=(name:string,pts:[number,number][])=>{
       const cLat=pts.reduce((s,q)=>s+q[0],0)/pts.length
       const cLng=pts.reduce((s,q)=>s+q[1],0)/pts.length
       const soil=nearest(cLat,cLng)
       const t=Math.min(1,soil.value/0.5)
-      let fill='#fde68a'
-      if (t>0.75) fill='#2563eb'
-      else if (t>0.5) fill='#06b6d4'
-      else if (t>0.25) fill='#34d399'
-      L.polygon(pts,{color:'rgba(255,255,255,0.3)',fillColor:fill,fillOpacity:0.38+t*0.28,weight:1.2,interactive:true})
+      L.polygon(pts,{color:'rgba(255,255,255,0.28)',fillOpacity:0,weight:1.1,interactive:true})
         .addTo(soilGrp.current!)
-        .bindTooltip(`<b>${name}</b><br/>Soil moisture: ${(soil.value*100).toFixed(1)}%<br/>${t>0.6?'Saturated':t>0.35?'Moist':'Dry'}`,{className:'snt-tip-dark',direction:'top'})
+        .bindTooltip(`<b>${name}</b><br/>Nearest soil moisture: ${(soil.value*100).toFixed(1)}%<br/>${t>0.6?'Saturated':t>0.35?'Moist':'Dry'}`,{className:'snt-tip-dark',direction:'top'})
     }
 
     if (p.districtBoundaries.length>0) {
-      // Real district boundary polygons from Overpass
-      p.districtBoundaries.forEach(d=>paintPolygon(d.name,d.coords))
-    } else {
-      // Fallback rectangular approximations while boundaries load
-      const RECT_FALLBACK:[string,[number,number][]][]=[
-        ['Kasaragod',[[12.78,74.89],[12.78,75.58],[12.30,75.58],[12.30,74.89]]],
-        ['Kannur',[[12.30,75.20],[12.30,76.02],[11.70,76.02],[11.70,75.20]]],
-        ['Wayanad',[[11.82,75.79],[11.82,76.42],[11.38,76.42],[11.38,75.79]]],
-        ['Kozhikode',[[11.70,75.49],[11.70,76.12],[11.10,76.12],[11.10,75.82],[11.38,75.82],[11.38,75.49]]],
-        ['Malappuram',[[11.38,75.82],[11.38,76.62],[10.68,76.62],[10.68,75.82]]],
-        ['Palakkad',[[11.10,76.12],[11.10,77.02],[10.28,77.02],[10.28,76.12]]],
-        ['Thrissur',[[10.68,75.95],[10.68,76.68],[10.10,76.68],[10.10,75.95]]],
-        ['Ernakulam',[[10.28,76.12],[10.28,76.62],[9.80,76.62],[9.80,76.12]]],
-        ['Idukki',[[10.28,76.62],[10.28,77.45],[9.50,77.45],[9.50,76.62]]],
-        ['Kottayam',[[9.80,76.42],[9.80,77.02],[9.28,77.02],[9.28,76.42]]],
-        ['Alappuzha',[[9.80,76.12],[9.80,76.62],[9.10,76.62],[9.10,76.12]]],
-        ['Pathanamthitta',[[9.50,76.62],[9.50,77.25],[8.98,77.25],[8.98,76.62]]],
-        ['Kollam',[[9.10,76.48],[9.10,77.12],[8.80,77.12],[8.80,76.48]]],
-        ['Thiruvananthapuram',[[8.80,76.68],[8.80,77.42],[8.05,77.42],[8.05,76.68]]],
-      ]
-      RECT_FALLBACK.forEach(([name,pts])=>paintPolygon(name,pts))
+      p.districtBoundaries.forEach(d=>outlineDistrict(d.name,d.coords))
     }
   },[p.showSoil,p.soilGrid,p.mapMode,p.districtBoundaries])
 
