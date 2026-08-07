@@ -9,6 +9,8 @@
     "start": "node dist/server.js",
     "import:gis": "tsx src/scripts/import-gis.ts",
     "import:gis:fixtures": "tsx src/scripts/import-gis-fixtures.ts",
+    "import:replay": "tsx src/scripts/import-replay.ts",
+    "import:replay:fixtures": "tsx src/scripts/import-replay-fixtures.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run"
   },

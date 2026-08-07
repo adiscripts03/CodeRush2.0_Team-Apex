@@ -1,14 +1,18 @@
 import type { ReactElement } from "react";
 import { EocMap } from "../components/EocMap";
+import { ReplayControls } from "../components/ReplayControls";
+import { SnapshotPanel } from "../components/SnapshotPanel";
 import { StatusPill } from "../components/StatusPill";
 import { frontendEnv } from "../config/env";
 import { useGisLayers } from "../hooks/useGisLayers";
 import { useBackendHealth } from "../hooks/useBackendHealth";
+import { useReplayController } from "../hooks/useReplayController";
 import { formatMongoStatus } from "../services/health.service";
 
 export function HomePage(): ReactElement {
   const { health, isLoading, error } = useBackendHealth();
   const gis = useGisLayers();
+  const replay = useReplayController();
   const hasMapboxToken = frontendEnv.mapboxAccessToken.length > 0;
 
   return (
@@ -18,7 +22,7 @@ export function HomePage(): ReactElement {
           <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">Emergency Operations Center</p>
           <h1 className="mt-2 text-3xl font-semibold">Kerala Floods 2018 Foundation</h1>
           <p className="mt-3 max-w-3xl text-base leading-7 text-zinc-700">
-            Milestone 1 establishes traceable infrastructure for a simulation-first disaster management system.
+            Simulation-first disaster management system with historical replay and traceable infrastructure.
           </p>
         </div>
 
@@ -41,8 +45,27 @@ export function HomePage(): ReactElement {
           </article>
         </div>
 
+        {/* Replay Controls */}
+        <ReplayControls
+          timeline={replay.activeTimeline}
+          snapshot={replay.activeSnapshot}
+          timestampMs={replay.activeTimestampMs}
+          sliderValue={replay.sliderValue}
+          isPlaying={replay.isPlaying}
+          speed={replay.speed}
+          isLoading={replay.isLoading}
+          error={replay.error}
+          onPlay={replay.play}
+          onPause={replay.pause}
+          onSeek={replay.seek}
+          onSpeedChange={replay.setSpeed}
+          onStepForward={replay.stepForward}
+          onStepBackward={replay.stepBackward}
+        />
+
+        {/* Map + GIS Layers sidebar */}
         <section className="grid gap-4 lg:grid-cols-[1fr_18rem]">
-          <EocMap />
+          <EocMap floodExtent={replay.activeSnapshot?.state.floodExtent ?? null} />
           <aside className="rounded border border-zinc-200 bg-white p-5 shadow-sm">
             <h2 className="text-base font-semibold">GIS Layers</h2>
             <div className="mt-4 flex flex-col gap-3">
@@ -57,6 +80,9 @@ export function HomePage(): ReactElement {
             </div>
           </aside>
         </section>
+
+        {/* Snapshot State Panel */}
+        <SnapshotPanel snapshot={replay.activeSnapshot} isLoading={replay.isLoading} />
       </section>
     </main>
   );

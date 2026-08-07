@@ -5,6 +5,7 @@ import { pinoHttp } from "pino-http";
 import { gisRouter } from "./api/gis.routes.js";
 import { healthRouter } from "./api/health.routes.js";
 import { hazardRouter } from "./api/hazard.routes.js";
+import { replayRouter } from "./api/replay.routes.js";
 import { env } from "./config/env.js";
 import { errorHandler } from "./middleware/error-handler.js";
 import { requestContext } from "./middleware/request-context.js";
@@ -22,6 +23,7 @@ export function createApp(): express.Express {
   app.use("/health", healthRouter);
   app.use("/api/gis", gisRouter);
   app.use("/api/hazards", hazardRouter);
+  app.use("/api/replay", replayRouter);
 
   app.use(errorHandler);
 

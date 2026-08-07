@@ -1,0 +1,82 @@
+{
+  "timeline": {
+    "name": "Kerala Floods 2018 Sample Replay",
+    "description": "Deterministic sample replay for Milestone 3 development and tests.",
+    "startsAt": "2018-08-15T00:00:00.000Z",
+    "endsAt": "2018-08-15T12:00:00.000Z",
+    "timestepMinutes": 360,
+    "source": {
+      "name": "Project replay fixture",
+      "provider": "Project fixture",
+      "license": "For local development and tests only"
+    }
+  },
+  "snapshots": [
+    {
+      "sequence": 0,
+      "timestamp": "2018-08-15T00:00:00.000Z",
+      "state": {
+        "weather": { "rainfallMm": 92, "condition": "heavy_rain" },
+        "riverLevels": [{ "station": "Periyar sample", "levelMeters": 3.8, "trend": "rising" }],
+        "notes": "Initial sample replay state.",
+        "floodExtent": {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "properties": { "depthMeters": 0.4, "confidence": 0.72 },
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [[[76.24, 9.94], [76.34, 9.94], [76.34, 10.03], [76.24, 10.03], [76.24, 9.94]]]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "sequence": 1,
+      "timestamp": "2018-08-15T06:00:00.000Z",
+      "state": {
+        "weather": { "rainfallMm": 141, "condition": "extreme_rain" },
+        "riverLevels": [{ "station": "Periyar sample", "levelMeters": 4.6, "trend": "rising" }],
+        "notes": "Flood extent expands in the sample replay.",
+        "floodExtent": {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "properties": { "depthMeters": 0.9, "confidence": 0.68 },
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [[[76.22, 9.92], [76.38, 9.92], [76.38, 10.08], [76.22, 10.08], [76.22, 9.92]]]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "sequence": 2,
+      "timestamp": "2018-08-15T12:00:00.000Z",
+      "state": {
+        "weather": { "rainfallMm": 118, "condition": "heavy_rain" },
+        "riverLevels": [{ "station": "Periyar sample", "levelMeters": 4.9, "trend": "stable" }],
+        "notes": "Peak sample replay extent.",
+        "floodExtent": {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "properties": { "depthMeters": 1.2, "confidence": 0.66 },
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [[[76.19, 9.9], [76.42, 9.9], [76.42, 10.12], [76.19, 10.12], [76.19, 9.9]]]
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
