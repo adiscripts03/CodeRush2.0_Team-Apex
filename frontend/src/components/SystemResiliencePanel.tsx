@@ -1,5 +1,6 @@
-import { type ReactElement } from "react";
+import { useState, type ReactElement } from "react";
 import type { FailureInjection, ResilienceHealthMetrics } from "../resilience/resilience.types";
+import type { AutoSimulationStep } from "../services/resilience.service";
 import { StatusPill } from "./StatusPill";
 
 interface SystemResiliencePanelProps {
@@ -10,6 +11,7 @@ interface SystemResiliencePanelProps {
   onInjectFailure?: (type: FailureInjection["failureType"]) => void;
   onClearFailures?: () => void;
   onSyncOfflineQueue?: () => void;
+  onRunAutoSimulation?: () => Promise<{ steps: AutoSimulationStep[] }>;
 }
 
 export function SystemResiliencePanel({
@@ -19,8 +21,12 @@ export function SystemResiliencePanel({
   isLoading,
   onInjectFailure,
   onClearFailures,
-  onSyncOfflineQueue
+  onSyncOfflineQueue,
+  onRunAutoSimulation
 }: SystemResiliencePanelProps): ReactElement {
+  const [isSimulating, setIsSimulating] = useState(false);
+  const [simSteps, setSimSteps] = useState<AutoSimulationStep[]>([]);
+
   if (isLoading) {
     return (
       <section className="rounded border border-zinc-200 bg-white p-5 shadow-sm">
@@ -31,6 +37,21 @@ export function SystemResiliencePanel({
 
   const resilienceIndex = resilienceHealth?.resilienceIndex ?? 100;
   const status = resilienceHealth?.status ?? "healthy";
+
+  const handleStartAutoSim = () => {
+    if (!onRunAutoSimulation || isSimulating) return;
+    setIsSimulating(true);
+    setSimSteps([]);
+
+    onRunAutoSimulation()
+      .then((res) => {
+        setSimSteps(res.steps);
+      })
+      .catch(() => {})
+      .finally(() => {
+        setIsSimulating(false);
+      });
+  };
 
   return (
     <section className="rounded border border-zinc-200 bg-white p-5 shadow-sm">
@@ -45,10 +66,37 @@ export function SystemResiliencePanel({
           </div>
 
           <div className="flex items-center gap-2">
+            {onRunAutoSimulation ? (
+              <button
+                type="button"
+                onClick={handleStartAutoSim}
+                disabled={isSimulating}
+                className="rounded bg-teal-700 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-teal-800 disabled:opacity-50"
+              >
+                {isSimulating ? "⏳ Simulating Full 8-Stage Cycle…" : "🚀 Run Full Auto Simulation"}
+              </button>
+            ) : null}
             <StatusPill label={`SYSTEM: ${status.toUpperCase()}`} tone={status === "healthy" ? "ok" : "warn"} />
             <StatusPill label={`Resilience Index: ${resilienceIndex}%`} tone={resilienceIndex >= 80 ? "ok" : "warn"} />
           </div>
         </div>
+
+        {/* Live Simulation Step Execution Banner */}
+        {simSteps.length > 0 ? (
+          <div className="rounded border border-teal-200 bg-teal-50 p-4">
+            <h3 className="text-xs font-bold uppercase tracking-wide text-teal-900">
+              Auto Simulation Execution Log ({simSteps.length} Steps Completed)
+            </h3>
+            <div className="mt-2 space-y-1.5 text-xs text-teal-950">
+              {simSteps.map((s) => (
+                <div key={s.step} className="flex items-start gap-2 border-b border-teal-100 pb-1.5 last:border-b-0">
+                  <span className="font-semibold text-teal-800">✅ {s.name}:</span>
+                  <span className="text-teal-900">{s.detail}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         {/* Resilience Index Progress Bar */}
         <div>

@@ -1,5 +1,5 @@
-import { useEffect, useState, type ReactElement } from "react";
-import { EocMap } from "../components/EocMap";
+import { useEffect, useRef, useState, type ReactElement } from "react";
+import { EocMap, type EocMapHandle } from "../components/EocMap";
 import { EvaluationLearningPanel } from "../components/EvaluationLearningPanel";
 import { FloodAnalysisPanel } from "../components/FloodAnalysisPanel";
 import { HumanApprovalPanel } from "../components/HumanApprovalPanel";
@@ -27,11 +27,12 @@ import { fetchCurrentFlood, fetchFloodChange } from "../services/flood.service";
 import { fetchImpactByTimestamp, fetchLatestImpactSummary } from "../services/impact.service";
 import { clearOfflineQueue, enqueueOfflineAction, getQueuedOfflineActions, syncOfflineQueue } from "../services/offline-queue.service";
 import { fetchRecommendations, runPlannerApi } from "../services/planner.service";
-import { clearFailuresApi, fetchActiveFailures, fetchResilienceHealth, injectFailureApi } from "../services/resilience.service";
+import { clearFailuresApi, fetchActiveFailures, fetchResilienceHealth, injectFailureApi, runAutoSimulationApi, streamAutoSimulation, type AutoSimulationStep } from "../services/resilience.service";
 import { fetchEvacuationRoute, fetchResources } from "../services/resource.service";
 import { formatMongoStatus } from "../services/health.service";
 
 export function HomePage(): ReactElement {
+  const mapRef = useRef<EocMapHandle | null>(null);
   const { health, isLoading, error } = useBackendHealth();
   const gis = useGisLayers();
   const replay = useReplayController();
@@ -191,6 +192,49 @@ export function HomePage(): ReactElement {
     }).catch(() => {});
   };
 
+  const handleRunAutoSimulation = (): Promise<{ steps: AutoSimulationStep[] }> => {
+    return new Promise((resolve) => {
+      const allSteps: AutoSimulationStep[] = [];
+
+      const cleanup = streamAutoSimulation(
+        (step) => {
+          allSteps.push(step);
+          // Push map event to live map
+          if (step.mapEvent && mapRef.current) {
+            mapRef.current.applySimEvent(step.mapEvent);
+          }
+          // Refresh data on key steps
+          if (step.step === 4) {
+            fetchCurrentFlood().then((r) => setFloodSnapshot(r.snapshot)).catch(() => {});
+          }
+          if (step.step === 5) {
+            fetchLatestImpactSummary().then((r) => setImpactAssessment(r)).catch(() => {});
+          }
+          if (step.step === 6) {
+            fetchRecommendations().then((r) => setRecommendations(r)).catch(() => {});
+          }
+          if (step.step === 7) {
+            refreshApprovalsAndAudit();
+          }
+          if (step.step === 9) {
+            fetchEvaluationMetrics().then((r) => setEvaluationMetrics(r.metrics)).catch(() => {});
+            fetchLearningReport().then((r) => setLearningReport(r)).catch(() => {});
+          }
+        },
+        () => {
+          // Done
+          refreshResilienceState();
+          resolve({ steps: allSteps });
+          cleanup();
+        },
+        () => {
+          resolve({ steps: allSteps });
+          cleanup();
+        }
+      );
+    });
+  };
+
   const handleGenerateRoute = (lng: number, lat: number) => {
     fetchEvacuationRoute(lng, lat, 50)
       .then((route) => setActiveRoute(route))
@@ -265,6 +309,7 @@ export function HomePage(): ReactElement {
           onInjectFailure={handleInjectFailure}
           onClearFailures={handleClearFailures}
           onSyncOfflineQueue={handleSyncOfflineQueue}
+          onRunAutoSimulation={handleRunAutoSimulation}
         />
 
         {/* Human Approval Workflow & Audit Trail Panel */}
@@ -309,6 +354,7 @@ export function HomePage(): ReactElement {
         {/* Map + GIS Layers sidebar */}
         <section className="grid gap-4 lg:grid-cols-[1fr_18rem]">
           <EocMap
+            ref={mapRef}
             floodExtent={replay.activeSnapshot?.state.floodExtent ?? null}
             expandedExtent={showChangeOverlay && changeData ? changeData.expandedFeatures : null}
             recededExtent={showChangeOverlay && changeData ? changeData.recededFeatures : null}

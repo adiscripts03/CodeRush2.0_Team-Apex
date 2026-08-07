@@ -1,6 +1,20 @@
 import { frontendEnv } from "../config/env";
 import type { FailureInjection, ResilienceHealthMetrics } from "../resilience/resilience.types";
 
+export interface AutoSimulationStep {
+  step: number;
+  name: string;
+  status: "success" | "warning" | "info";
+  detail: string;
+  timestamp?: string;
+}
+
+export interface AutoSimulationResponse {
+  success: boolean;
+  durationMs: number;
+  steps: AutoSimulationStep[];
+}
+
 export async function injectFailureApi(
   failureType: FailureInjection["failureType"],
   targetComponent = "core_telemetry"
@@ -46,4 +60,60 @@ export async function fetchResilienceHealth(): Promise<ResilienceHealthMetrics> 
     throw new Error(`Fetch resilience health failed with status ${response.status}`);
   }
   return response.json() as Promise<ResilienceHealthMetrics>;
+}
+
+export async function runAutoSimulationApi(): Promise<AutoSimulationResponse> {
+  const response = await fetch(`${frontendEnv.apiBaseUrl}/api/simulation/auto-run`, {
+    method: "POST",
+    headers: { "content-type": "application/json" }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Auto simulation failed with status ${response.status}`);
+  }
+  return response.json() as Promise<AutoSimulationResponse>;
+}
+
+export interface SimulationMapEvent {
+  type: "flood_appear" | "flood_expand" | "shelter_open" | "boat_deploy" | "route_open" | "fault_inject" | "fault_clear" | "evaluation";
+  floodPolygon?: GeoJSON.Feature | null;
+  markerPositions?: Array<{ lat: number; lng: number; label: string; color: string }>;
+  message: string;
+}
+
+export interface StreamedSimStep {
+  step: number;
+  name: string;
+  status: "success" | "warning" | "info";
+  detail: string;
+  mapEvent?: SimulationMapEvent;
+}
+
+export function streamAutoSimulation(
+  onStep: (step: StreamedSimStep) => void,
+  onDone: () => void,
+  onError: (msg: string) => void
+): () => void {
+  const url = `${frontendEnv.apiBaseUrl}/api/simulation/auto-run/stream`;
+  const es = new EventSource(url);
+
+  es.addEventListener("step", (e) => {
+    try {
+      const data = JSON.parse(e.data) as StreamedSimStep;
+      onStep(data);
+    } catch { /* ignore */ }
+  });
+
+  es.addEventListener("done", () => {
+    es.close();
+    onDone();
+  });
+
+  es.addEventListener("error", (e) => {
+    es.close();
+    onError("Simulation stream error");
+  });
+
+  // Return cleanup fn
+  return () => es.close();
 }
