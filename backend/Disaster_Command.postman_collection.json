@@ -1,0 +1,127 @@
+{
+  "info": {
+    "name": "Disaster Command System",
+    "description": "API collection for the Disaster Command backend.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/health",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "Dashboard Stats",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/dashboard",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["api", "dashboard"]
+        }
+      }
+    },
+    {
+      "name": "Hydro Feed",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/hydro",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["api", "hydro"]
+        }
+      }
+    },
+    {
+      "name": "Replay Engine (Frame 0)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/replay/frame/0",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["api", "replay", "frame", "0"]
+        }
+      }
+    },
+    {
+      "name": "Replay Engine (Frame 3 - Missing Data Simulation)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/replay/frame/3",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["api", "replay", "frame", "3"]
+        }
+      }
+    },
+    {
+      "name": "Generate AI Plan",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/planner/generate",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["api", "planner", "generate"]
+        }
+      }
+    },
+    {
+      "name": "Get All Actions",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/actions",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["api", "actions"]
+        }
+      }
+    },
+    {
+      "name": "Send Alert",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"email\",\n  \"recipient\": \"test@example.com\",\n  \"subject\": \"URGENT EVACUATION\",\n  \"message\": \"Please evacuate immediately.\",\n  \"humanApproved\": true\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/alerts/send",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["api", "alerts", "send"]
+        }
+      }
+    }
+  ]
+}

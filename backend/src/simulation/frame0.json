@@ -1,0 +1,19 @@
+{
+  "timestamp": "2018-08-14T08:00:00Z",
+  "rainfall": 150,
+  "riverLevel": 5.2,
+  "floodPolygon": {
+    "type": "Polygon",
+    "coordinates": [[[76.5, 9.3], [76.7, 9.3], [76.7, 9.5], [76.5, 9.5], [76.5, 9.3]]]
+  },
+  "confidence": 0.85,
+  "roadsAffected": 12,
+  "populationAffected": 5000,
+  "hospitalAffected": 0,
+  "satelliteStatus": "Clear",
+  "weather": "Heavy Rain",
+  "sensorReadings": [
+    { "sensorId": "RS-01", "level": 85 },
+    { "sensorId": "RS-02", "level": 82 }
+  ]
+}
