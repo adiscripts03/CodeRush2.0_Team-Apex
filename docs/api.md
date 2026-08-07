@@ -212,12 +212,42 @@ Returns district-level affected population exposure breakdowns.
 Query params:
 - `timestamp`: Optional ISO 8601 datetime string.
 
-## `GET /impact/infrastructure` (alias `/api/impact/infrastructure`)
+## `GET /resources` (alias `/api/resources`)
 
-Returns list of all inundated critical facilities (hospitals, shelters, schools) and blocked road segments.
+Returns all emergency resources, vehicles, and shelter capacity statuses.
+
+## `POST /resources/update` (alias `/api/resources/update`)
+
+Updates resource quantity, vehicle status, or shelter occupancy.
+
+Request body:
+
+```json
+{
+  "shelterId": "SHELTER_ERNAKULAM_TOWN_HALL",
+  "occupancy": 900
+}
+```
+
+## `GET /routes/evacuation` (alias `/api/routes/evacuation`)
+
+Calculates evacuation route to nearest available shelter with capacity, bypassing active flood polygons.
 
 Query params:
-- `timestamp`: Optional ISO 8601 datetime string.
+- `lng`: Origin longitude.
+- `lat`: Origin latitude.
+- `evacueesCount`: Optional evacuees count (default: 50).
+
+## `GET /routes/safe` (alias `/api/routes/safe`)
+
+Calculates safe point-to-point route bypassing active flood polygons.
+
+Query params:
+- `origLng`: Origin longitude.
+- `origLat`: Origin latitude.
+- `destLng`: Destination longitude.
+- `destLat`: Destination latitude.
+
 
 
 

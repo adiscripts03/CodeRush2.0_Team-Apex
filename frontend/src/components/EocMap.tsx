@@ -10,6 +10,7 @@ interface EocMapProps {
   floodExtent?: GeoJSON.FeatureCollection | null;
   expandedExtent?: GeoJSON.FeatureCollection | null;
   recededExtent?: GeoJSON.FeatureCollection | null;
+  evacuationRoute?: GeoJSON.FeatureCollection | null;
 }
 
 const FLOOD_SOURCE_ID = "replay-flood-extent";
@@ -22,12 +23,15 @@ const EXPANDED_FILL_LAYER_ID = "flood-expanded-fill";
 const RECEDED_SOURCE_ID = "flood-receded-extent";
 const RECEDED_FILL_LAYER_ID = "flood-receded-fill";
 
+const ROUTE_SOURCE_ID = "evacuation-route-source";
+const ROUTE_LINE_LAYER_ID = "evacuation-route-line";
+
 const emptyFeatureCollection: GeoJSON.FeatureCollection = {
   type: "FeatureCollection",
   features: []
 };
 
-export function EocMap({ floodExtent, expandedExtent, recededExtent }: EocMapProps): ReactElement {
+export function EocMap({ floodExtent, expandedExtent, recededExtent, evacuationRoute }: EocMapProps): ReactElement {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
 
@@ -125,6 +129,28 @@ export function EocMap({ floodExtent, expandedExtent, recededExtent }: EocMapPro
           "fill-opacity": 0.4
         }
       });
+
+      // Add evacuation route layer (teal line)
+      map.addSource(ROUTE_SOURCE_ID, {
+        type: "geojson",
+        data: evacuationRoute ?? emptyFeatureCollection
+      });
+
+      map.addLayer({
+        id: ROUTE_LINE_LAYER_ID,
+        type: "line",
+        source: ROUTE_SOURCE_ID,
+        layout: {
+          "line-join": "round",
+          "line-cap": "round"
+        },
+        paint: {
+          "line-color": "#0f766e",
+          "line-width": 4.5,
+          "line-opacity": 0.9,
+          "line-dasharray": [2, 1]
+        }
+      });
     });
 
     return () => {
@@ -133,7 +159,7 @@ export function EocMap({ floodExtent, expandedExtent, recededExtent }: EocMapPro
     };
   }, []);
 
-  // Update flood extent & change data whenever props change
+  // Update flood extent & change & route data whenever props change
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !map.isStyleLoaded()) {
@@ -154,7 +180,12 @@ export function EocMap({ floodExtent, expandedExtent, recededExtent }: EocMapPro
     if (recededSource) {
       recededSource.setData(recededExtent ?? emptyFeatureCollection);
     }
-  }, [floodExtent, expandedExtent, recededExtent]);
+
+    const routeSource = map.getSource(ROUTE_SOURCE_ID) as mapboxgl.GeoJSONSource | undefined;
+    if (routeSource) {
+      routeSource.setData(evacuationRoute ?? emptyFeatureCollection);
+    }
+  }, [floodExtent, expandedExtent, recededExtent, evacuationRoute]);
 
   if (frontendEnv.mapboxAccessToken.length === 0) {
     return (

@@ -12,20 +12,22 @@ Milestone 4 implements the Flood Detection & Change Detection Engine: Sentinel-2
 
 Milestone 5 implements the Impact Assessment Engine: intersecting flood extent polygons with GIS layers (population, roads, hospitals, shelters, schools, districts), calculating affected population, blocked road length (km), inundated critical facilities, estimated shelter demand (20% displacement ratio), severity scoring (0.0 to 1.0 / Low to Critical), and impact APIs (`/impact/:timestamp`, `/impact/summary`, `/impact/population`, `/impact/infrastructure`).
 
+Milestone 6 implements the Resource Inventory & Evacuation Routing Engine: disaster asset tracking (rescue boats, ambulances, medical teams, food stock), shelter capacity manager, flood-aware waypoint-bypass routing, safety status calculation (`safe`, `caution`, `blocked`), Mapbox safe route rendering, and resource/route APIs (`/resources`, `/resources/update`, `/routes/evacuation`, `/routes/safe`).
+
 ## Architecture
 
 The system follows the core decision loop:
 
 Observe -> Estimate -> Explain uncertainty -> Plan within constraints -> Human approval -> Simulation execution -> Evaluation -> Learning report -> Observe again
 
-Milestone 1 creates the traceable substrate. Milestone 2 adds GIS base layers. Milestone 3 provides time-aware historical replay. Milestone 4 provides satellite flood extent detection & spatial change analysis. Milestone 5 provides real-time impact assessment & severity evaluation.
+Milestone 1 creates the traceable substrate. Milestone 2 adds GIS base layers. Milestone 3 provides time-aware historical replay. Milestone 4 provides satellite flood extent detection & spatial change analysis. Milestone 5 provides real-time impact assessment & severity evaluation. Milestone 6 provides resource inventory management & flood-aware safe evacuation routing.
 
 Floods are represented as the first hazard module under `backend/src/hazards/flood`. Future hazards must register through the same module boundary instead of changing core infrastructure.
 
 ## Workspace
 
-- `backend`: Express, TypeScript, MongoDB/Mongoose, audit logging, health checks, GIS, replay, flood detection, impact assessment.
-- `frontend`: React, TypeScript, Vite, TailwindCSS, Mapbox visualizer, replay controls, flood intelligence panel, impact summary panel.
+- `backend`: Express, TypeScript, MongoDB/Mongoose, audit logging, health checks, GIS, replay, flood detection, impact assessment, resource routing.
+- `frontend`: React, TypeScript, Vite, TailwindCSS, Mapbox visualizer, replay controls, flood intelligence panel, impact summary panel, resource inventory panel.
 - `docs`: milestone architecture, schema, API, setup, ADRs, and acceptance criteria.
 
 ## Quick Start
@@ -38,12 +40,13 @@ npm run typecheck
 npm test
 ```
 
-Import local GIS fixtures, replay sample data, and flood detection data:
+Import local GIS fixtures, replay sample data, flood detection data, and resource fixtures:
 
 ```bash
 npm run import:gis:fixtures --workspace backend
 npm run import:replay:fixtures --workspace backend
 npm run import:flood --workspace backend
+npm run import:resources:fixtures --workspace backend
 ```
 
 Development servers:

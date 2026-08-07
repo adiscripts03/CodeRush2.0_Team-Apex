@@ -12,6 +12,7 @@
     "import:replay": "tsx src/scripts/import-replay.ts",
     "import:replay:fixtures": "tsx src/scripts/import-replay-fixtures.ts",
     "import:flood": "tsx src/scripts/import-flood-data.ts",
+    "import:resources:fixtures": "tsx src/scripts/import-resource-fixtures.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run"
   },

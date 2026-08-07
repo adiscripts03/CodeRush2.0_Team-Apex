@@ -3,16 +3,19 @@ import { EocMap } from "../components/EocMap";
 import { FloodAnalysisPanel } from "../components/FloodAnalysisPanel";
 import { ImpactSummaryPanel } from "../components/ImpactSummaryPanel";
 import { ReplayControls } from "../components/ReplayControls";
+import { ResourceInventoryPanel } from "../components/ResourceInventoryPanel";
 import { SnapshotPanel } from "../components/SnapshotPanel";
 import { StatusPill } from "../components/StatusPill";
 import { frontendEnv } from "../config/env";
 import type { ChangeDetectionResponse, FloodSnapshot } from "../flood/flood.types";
 import type { ImpactAssessment } from "../impact/impact.types";
+import type { Resource, RoutePlan, ShelterCapacity, Vehicle } from "../resources/resource.types";
 import { useGisLayers } from "../hooks/useGisLayers";
 import { useBackendHealth } from "../hooks/useBackendHealth";
 import { useReplayController } from "../hooks/useReplayController";
 import { fetchCurrentFlood, fetchFloodChange } from "../services/flood.service";
 import { fetchImpactByTimestamp, fetchLatestImpactSummary } from "../services/impact.service";
+import { fetchEvacuationRoute, fetchResources } from "../services/resource.service";
 import { formatMongoStatus } from "../services/health.service";
 
 export function HomePage(): ReactElement {
@@ -26,10 +29,23 @@ export function HomePage(): ReactElement {
   const [impactAssessment, setImpactAssessment] = useState<ImpactAssessment | null>(null);
   const [showChangeOverlay, setShowChangeOverlay] = useState(true);
 
+  const [shelters, setShelters] = useState<ShelterCapacity[]>([]);
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [activeRoute, setActiveRoute] = useState<RoutePlan | null>(null);
+
   // Fetch current flood snapshot, change detection & impact assessment when replay timestamp changes
   useEffect(() => {
     fetchCurrentFlood()
       .then((res) => setFloodSnapshot(res.snapshot))
+      .catch(() => {});
+
+    fetchResources()
+      .then((res) => {
+        setShelters(res.shelters);
+        setResources(res.resources);
+        setVehicles(res.vehicles);
+      })
       .catch(() => {});
 
     if (replay.activeSnapshot?.timestamp) {
@@ -45,6 +61,16 @@ export function HomePage(): ReactElement {
     }
   }, [replay.activeSnapshot]);
 
+  const handleGenerateRoute = (lng: number, lat: number) => {
+    fetchEvacuationRoute(lng, lat, 50)
+      .then((route) => setActiveRoute(route))
+      .catch(() => {});
+  };
+
+  const routeFeatureCollection: GeoJSON.FeatureCollection | null = activeRoute
+    ? { type: "FeatureCollection", features: [activeRoute.path] }
+    : null;
+
   return (
     <main className="min-h-screen bg-zinc-50 text-zinc-950">
       <section className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-10">
@@ -52,7 +78,7 @@ export function HomePage(): ReactElement {
           <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">Emergency Operations Center</p>
           <h1 className="mt-2 text-3xl font-semibold">Kerala Floods 2018 Intelligence Engine</h1>
           <p className="mt-3 max-w-3xl text-base leading-7 text-zinc-700">
-            Simulation-first disaster management system with Sentinel-2 flood extent detection, spatial change analysis, impact assessment, historical replay, and traceable infrastructure.
+            Simulation-first disaster management system with Sentinel-2 flood extent detection, spatial change analysis, impact assessment, safe evacuation routing, historical replay, and traceable infrastructure.
           </p>
         </div>
 
@@ -105,12 +131,23 @@ export function HomePage(): ReactElement {
         {/* Impact Assessment Summary Panel */}
         <ImpactSummaryPanel impact={impactAssessment} isLoading={replay.isLoading} />
 
+        {/* Resource Inventory & Evacuation Routing Panel */}
+        <ResourceInventoryPanel
+          shelters={shelters}
+          resources={resources}
+          vehicles={vehicles}
+          activeRoute={activeRoute}
+          isLoading={replay.isLoading}
+          onGenerateRoute={handleGenerateRoute}
+        />
+
         {/* Map + GIS Layers sidebar */}
         <section className="grid gap-4 lg:grid-cols-[1fr_18rem]">
           <EocMap
             floodExtent={replay.activeSnapshot?.state.floodExtent ?? null}
             expandedExtent={showChangeOverlay && changeData ? changeData.expandedFeatures : null}
             recededExtent={showChangeOverlay && changeData ? changeData.recededFeatures : null}
+            evacuationRoute={routeFeatureCollection}
           />
           <aside className="rounded border border-zinc-200 bg-white p-5 shadow-sm">
             <h2 className="text-base font-semibold">GIS Layers</h2>

@@ -8,6 +8,8 @@ import { healthRouter } from "./api/health.routes.js";
 import { hazardRouter } from "./api/hazard.routes.js";
 import { impactRouter } from "./api/impact.routes.js";
 import { replayRouter } from "./api/replay.routes.js";
+import { resourceRouter } from "./api/resource.routes.js";
+import { routeRouter } from "./api/route.routes.js";
 import { env } from "./config/env.js";
 import { errorHandler } from "./middleware/error-handler.js";
 import { requestContext } from "./middleware/request-context.js";
@@ -30,6 +32,10 @@ export function createApp(): express.Express {
   app.use("/flood", floodRouter);
   app.use("/api/impact", impactRouter);
   app.use("/impact", impactRouter);
+  app.use("/api/resources", resourceRouter);
+  app.use("/resources", resourceRouter);
+  app.use("/api/routes", routeRouter);
+  app.use("/routes", routeRouter);
 
   app.use(errorHandler);
 
