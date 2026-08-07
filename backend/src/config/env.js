@@ -9,6 +9,7 @@ export const env = {
   mongoUri: process.env.MONGO_URI,
   jwtSecret: process.env.JWT_SECRET,
   openaiApiKey: process.env.OPENAI_API_KEY,
+  groqApiKey: process.env.GROQ_API_KEY,
   smtp: {
     host: process.env.SMTP_HOST,
     port: process.env.SMTP_PORT,

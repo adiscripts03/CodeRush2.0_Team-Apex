@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Send, CheckCircle, AlertOctagon, Loader2, Mail } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Send, CheckCircle, AlertOctagon, Loader2, Mail, RefreshCw } from 'lucide-react';
 import { useApp } from '../state/AppContext';
 
 const DEMO_RECIPIENTS = [
@@ -10,7 +10,7 @@ const DEMO_RECIPIENTS = [
 ];
 
 export default function AlertComposer() {
-  const { recordSentAlert } = useApp();
+  const { recordSentAlert, isOffline, setOfflineQueue, alertPrefillData, setAlertPrefillData } = useApp();
 
   const [recipientEmail, setRecipientEmail] = useState(DEMO_RECIPIENTS[0].email);
   const [subject, setSubject] = useState('URGENT: Kuttanad Inundation Alert & Immediate Evacuation Directive');
@@ -18,63 +18,127 @@ export default function AlertComposer() {
   const [isSending, setIsSending] = useState(false);
   const [statusResult, setStatusResult] = useState(null);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!subject.trim() || !message.trim()) return;
+  // Auto-populate from alertPrefillData when it changes
+  useEffect(() => {
+    if (alertPrefillData) {
+      if (alertPrefillData.subject) setSubject(alertPrefillData.subject);
+      if (alertPrefillData.message) setMessage(alertPrefillData.message);
+      // Clear prefill after applying so it doesn't re-apply on next render
+      setAlertPrefillData(null);
+    }
+  }, [alertPrefillData, setAlertPrefillData]);
 
+  // Store last submission params for retry
+  const [lastSubmission, setLastSubmission] = useState(null);
+
+  const doSend = async (submissionData) => {
+    const { subj, msg, email } = submissionData;
     setIsSending(true);
     setStatusResult(null);
 
     try {
+      if (isOffline) {
+        // Simulate queueing the alert locally
+        const queuedAlert = {
+          id: `alert-queued-${Date.now()}`,
+          subject: subj,
+          message: msg,
+          recipientEmail: email,
+          status: 'QUEUED (OFFLINE)',
+          timestamp: new Date().toISOString(),
+        };
+        setOfflineQueue(prev => [...prev, queuedAlert]);
+        recordSentAlert(queuedAlert);
+        setStatusResult({
+          success: true,
+          message: 'System offline: Alert queued locally for sync.',
+          channels: [{ channel: 'email', status: 'queued', detail: 'Will send when back online' }],
+        });
+        setIsSending(false);
+        return;
+      }
+
       const response = await fetch('/api/send-alert', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          subject,
-          message,
-          recipientEmail,
+          subject: subj,
+          message: msg,
+          recipientEmail: email,
         }),
       });
 
       const data = await response.json();
 
       if (data.success) {
-        setStatusResult({ success: true, message: data.message || 'Alert successfully dispatched to email transporter.' });
+        setStatusResult({
+          success: true,
+          message: data.message || 'Alert successfully dispatched to email transporter.',
+          channels: [{ channel: 'email', status: 'sent', detail: `Delivered to ${email}` }],
+        });
         recordSentAlert({
           id: `alert-${Date.now()}`,
-          subject,
-          message,
-          recipientEmail,
+          subject: subj,
+          message: msg,
+          recipientEmail: email,
           status: 'DELIVERED',
           timestamp: new Date().toISOString(),
         });
+        setLastSubmission(null); // Clear retry on success
       } else {
-        setStatusResult({ success: false, error: data.error || 'Failed to send alert.' });
+        // Server returned an error response
+        setStatusResult({
+          success: false,
+          error: data.error || 'Failed to send alert.',
+          channels: [{ channel: 'email', status: 'failed', detail: data.error || 'Server rejected the request' }],
+        });
         recordSentAlert({
           id: `alert-${Date.now()}`,
-          subject,
-          message,
-          recipientEmail,
+          subject: subj,
+          message: msg,
+          recipientEmail: email,
           status: 'FAILED',
           error: data.error,
           timestamp: new Date().toISOString(),
         });
       }
     } catch (err) {
+      // Network/API failure — show a clear error, NOT a fake success
       console.error('Alert sending exception:', err);
-      setStatusResult({ success: true, message: 'Alert recorded locally (Express API unreachable).' });
+      setStatusResult({
+        success: false,
+        error: `Network error: ${err.message || 'Could not reach the alert server.'}`,
+        channels: [{ channel: 'email', status: 'failed', detail: `Network error: ${err.message}` }],
+        retryable: true,
+      });
       recordSentAlert({
         id: `alert-${Date.now()}`,
-        subject,
-        message,
-        recipientEmail,
-        status: 'LOCAL_RECORD',
+        subject: subj,
+        message: msg,
+        recipientEmail: email,
+        status: 'FAILED',
+        error: err.message,
         timestamp: new Date().toISOString(),
       });
     } finally {
       setIsSending(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!subject.trim() || !message.trim()) return;
+
+    const submissionData = { subj: subject, msg: message, email: recipientEmail };
+    setLastSubmission(submissionData);
+    await doSend(submissionData);
+  };
+
+  const handleRetry = async () => {
+    if (lastSubmission) {
+      await doSend(lastSubmission);
     }
   };
 
@@ -132,7 +196,7 @@ export default function AlertComposer() {
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            rows={4}
+            rows={5}
             className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-sm text-slate-900 focus:outline-none focus:border-cyan-600 transition-colors"
             placeholder="Type directive body..."
             required
@@ -142,18 +206,49 @@ export default function AlertComposer() {
         {/* Status Feedback */}
         {statusResult && (
           <div
-            className={`p-3.5 rounded-xl border text-xs font-semibold flex items-center gap-2.5 ${
+            className={`p-3.5 rounded-xl border text-xs font-semibold space-y-2 ${
               statusResult.success
                 ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
                 : 'bg-rose-50 border-rose-300 text-rose-800'
             }`}
           >
-            {statusResult.success ? (
-              <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
-            ) : (
-              <AlertOctagon className="w-4 h-4 text-rose-600 shrink-0" />
+            <div className="flex items-center gap-2.5">
+              {statusResult.success ? (
+                <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+              ) : (
+                <AlertOctagon className="w-4 h-4 text-rose-600 shrink-0" />
+              )}
+              <span>{statusResult.success ? statusResult.message : statusResult.error}</span>
+            </div>
+
+            {/* Per-channel status breakdown */}
+            {statusResult.channels && statusResult.channels.length > 0 && (
+              <div className="mt-2 space-y-1 pl-6">
+                {statusResult.channels.map((ch, idx) => (
+                  <div key={idx} className="flex items-center gap-2 text-[11px]">
+                    <span className={`px-1.5 py-0.5 rounded font-mono text-[9px] uppercase font-bold ${
+                      ch.status === 'sent' ? 'bg-emerald-200 text-emerald-900' :
+                      ch.status === 'queued' ? 'bg-amber-200 text-amber-900' :
+                      'bg-rose-200 text-rose-900'
+                    }`}>{ch.channel}</span>
+                    <span className="text-slate-600">{ch.detail}</span>
+                  </div>
+                ))}
+              </div>
             )}
-            <span>{statusResult.success ? statusResult.message : statusResult.error}</span>
+
+            {/* Retry button on failure */}
+            {!statusResult.success && lastSubmission && (
+              <button
+                type="button"
+                onClick={handleRetry}
+                disabled={isSending}
+                className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition-all disabled:opacity-50"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Retry Send</span>
+              </button>
+            )}
           </div>
         )}
 

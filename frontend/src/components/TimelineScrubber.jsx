@@ -122,6 +122,7 @@ export default function TimelineScrubber({
           <ConfidenceBadge
             confidence={currentKeyframe?.confidence}
             source={currentKeyframe?.source}
+            isDegraded={currentKeyframe?.is_degraded}
           />
         </div>
 

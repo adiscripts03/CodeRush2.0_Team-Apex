@@ -1,12 +1,16 @@
 import React from 'react';
 import { ShieldCheck, ShieldAlert, AlertTriangle } from 'lucide-react';
 
-export default function ConfidenceBadge({ confidence = 0.9, source = 'confirmed' }) {
+export default function ConfidenceBadge({ confidence = 0.9, source = 'confirmed', isDegraded = false }) {
   let badgeStyle = 'bg-emerald-50 text-emerald-800 border-emerald-300';
   let Icon = ShieldCheck;
   let labelText = 'High Confidence (Satellite Direct)';
 
-  if (confidence < 0.5 || source === 'interpolated') {
+  if (isDegraded) {
+    badgeStyle = 'bg-blue-50 text-blue-800 border-blue-300';
+    Icon = AlertTriangle;
+    labelText = 'Degraded Input (Cloud Cover/Night)';
+  } else if (confidence < 0.5 || source === 'interpolated') {
     badgeStyle = 'bg-amber-50 text-amber-800 border-amber-300';
     Icon = AlertTriangle;
     labelText = 'Reduced Confidence (Model Interpolated)';

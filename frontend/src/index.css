@@ -110,3 +110,11 @@
 .pulse-hazard {
   animation: pulse-ring 2s infinite;
 }
+
+/* Ping animation for focused plan affected location marker */
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
