@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useApp } from '../state/AppContext';
 import PlanCard from '../components/PlanCard';
-import { generateEvacuationPlan, generateAgenticPlan } from '../lib/planGenerator';
+import { generateFullEvacuationPlan, generateAgenticPlan } from '../lib/planGenerator';
 import { calculateImpactEstimate } from '../lib/impactEstimate';
 import { useActivityLog } from '../lib/activityLogger';
 import { ClipboardCheck, RefreshCw, CheckCircle2, XCircle, AlertCircle, ShieldAlert, Brain, Zap, Loader2 } from 'lucide-react';
@@ -29,23 +29,30 @@ export default function ResponsePlanner() {
     });
   }, [geoData]);
 
-  // Rule-based regenerate plan
-  const handleRegenerate = () => {
-    const plans = generateEvacuationPlan({
-      atRiskHospitals: impact.atRiskHospitals,
-      atRiskShelters: impact.atRiskShelters,
-      safeShelters: impact.safeShelters,
-      shelterCapacities: geoData.shelterCapacities,
-    });
+  // Rule-based regenerate plan (now uses generateFullEvacuationPlan for enriched data)
+  const handleRegenerate = async () => {
+    setIsAgenticLoading(true); // Re-use the loading state so UI shows a spinner
+    try {
+      const { fullPlans } = await generateFullEvacuationPlan({
+        atRiskHospitals: impact.atRiskHospitals,
+        atRiskShelters: impact.atRiskShelters,
+        safeShelters: impact.safeShelters,
+        shelterCapacities: geoData.shelterCapacities,
+      });
 
-    setRecommendedActions(plans);
-    setPlanSource('rule-based');
+      setRecommendedActions(fullPlans);
+      setPlanSource('rule-based');
 
-    logEvent({
-      type: 'plan',
-      message: `Regenerated ${plans.length} rule-based evacuation recommendations based on updated hazard coordinates.`,
-      timestamp: new Date().toISOString(),
-    });
+      logEvent({
+        type: 'plan',
+        message: `Generated full evacuation plan: ${fullPlans.length} recommendations with ${fullPlans.filter(p => p.assignedShelters?.length).length} shelters assigned, ${fullPlans.filter(p => p.assignedHospitals?.length).length} hospitals identified.`,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (err) {
+      console.error('Rule-based plan generation error:', err);
+    } finally {
+      setIsAgenticLoading(false);
+    }
   };
 
   // Agentic plan with LLM reasoning

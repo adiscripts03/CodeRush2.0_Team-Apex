@@ -4,7 +4,7 @@ import { LayoutDashboard, MapPin, ClipboardCheck, History, Bell, Activity, Zap, 
 import { useApp } from '../state/AppContext';
 
 export default function Navbar() {
-  const { currentKeyframe, recommendedActions, actionStates, sentAlerts, isSidebarExpanded, toggleSidebar, isOffline, toggleOffline } = useApp();
+  const { currentKeyframe, recommendedActions, actionStates, activeAlerts, isSidebarExpanded, toggleSidebar, isOffline, toggleOffline } = useApp();
 
   const pendingCount = recommendedActions.filter(
     (a) => !actionStates[a.id] || actionStates[a.id].status === 'pending'
@@ -26,7 +26,7 @@ export default function Navbar() {
       path: '/alerts',
       label: 'Alert Centre',
       icon: Bell,
-      badge: sentAlerts.length > 0 ? sentAlerts.length : null,
+      badge: activeAlerts.length > 0 ? activeAlerts.length : null,
     },
     { path: '/evaluation', label: 'Evaluation Report', icon: TrendingUp },
   ];

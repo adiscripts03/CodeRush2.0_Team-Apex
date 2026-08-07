@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useActivityLog } from '../lib/activityLogger';
 
 const AppContext = createContext(null);
@@ -49,6 +49,20 @@ export function AppProvider({ children }) {
   const toggleSidebar = useCallback(() => {
     setIsSidebarExpanded(prev => !prev);
   }, []);
+
+  // Focused evacuation plan state (view-state toggle for MapView)
+  const [focusedPlan, setFocusedPlan] = useState(null);
+  const clearFocusedPlan = useCallback(() => {
+    setFocusedPlan(null);
+    logEvent({
+      type: 'observation',
+      message: 'Exited focused evacuation plan view. Returning to full map.',
+      timestamp: new Date().toISOString(),
+    });
+  }, [logEvent]);
+
+  // Alert prefill data (auto-populated from evacuation plan)
+  const [alertPrefillData, setAlertPrefillData] = useState(null);
 
   // Fetch initial event timeline and static datasets
   useEffect(() => {
@@ -168,12 +182,50 @@ export function AppProvider({ children }) {
   }, [recommendedActions, logEvent]);
 
   const recordSentAlert = useCallback((alertRecord) => {
-    setSentAlerts(prev => [alertRecord, ...prev]);
+    // Ensure every alert has a resolvedAt field (null = active)
+    const record = { ...alertRecord, resolvedAt: alertRecord.resolvedAt || null };
+    setSentAlerts(prev => [record, ...prev]);
     logEvent({
       type: 'alert',
-      message: `Emergency Alert sent to ${alertRecord.recipientEmail}: "${alertRecord.subject}"`,
+      message: `Emergency Alert sent to ${record.recipientEmail}: "${record.subject}"`,
       timestamp: new Date().toISOString(),
-      details: alertRecord
+      details: record
+    });
+  }, [logEvent]);
+
+  // Resolve an alert (Option A: mark as resolved, keep in audit log)
+  const resolveAlert = useCallback((alertId) => {
+    const resolvedAt = new Date().toISOString();
+    setSentAlerts(prev => prev.map(a =>
+      a.id === alertId ? { ...a, resolvedAt, status: 'RESOLVED' } : a
+    ));
+    const alert = sentAlerts.find(a => a.id === alertId);
+    logEvent({
+      type: 'alert',
+      message: `Alert "${alert?.subject || alertId}" marked as RESOLVED.`,
+      timestamp: resolvedAt,
+      details: { alertId, resolvedAt },
+    });
+  }, [sentAlerts, logEvent]);
+
+  // Computed: active vs resolved alerts
+  const activeAlerts = useMemo(() => sentAlerts.filter(a => !a.resolvedAt), [sentAlerts]);
+  const resolvedAlerts = useMemo(() => sentAlerts.filter(a => !!a.resolvedAt), [sentAlerts]);
+
+  // Draft alert from a plan (auto-populate AlertComposer)
+  const draftAlertFromPlan = useCallback((plan) => {
+    const shelterNames = plan.assignedShelters?.map(s => s.name).join(', ') || plan.targetShelterName;
+    const routeSummary = plan.evacuationRoutes?.map(r => `${r.distanceKm} km (${r.type})`).join(', ') || `${plan.distanceKm} km`;
+
+    setAlertPrefillData({
+      subject: `URGENT: Evacuation Directive — ${plan.title}`,
+      message: `EVACUATION ALERT\n\nAffected Location: ${plan.sourceLocation}\nAssigned Shelter(s): ${shelterNames}\nEstimated Evacuees: ${plan.estimatedPatients}\nRoute Distance: ${routeSummary}\n\nAction Required: ${plan.description}\n\nThis alert requires immediate coordination. All response units acknowledge receipt.`,
+    });
+
+    logEvent({
+      type: 'plan',
+      message: `Alert draft auto-populated from evacuation plan: "${plan.title}"`,
+      timestamp: new Date().toISOString(),
     });
   }, [logEvent]);
 
@@ -219,6 +271,9 @@ export function AppProvider({ children }) {
     updateActionStatus,
     sentAlerts,
     recordSentAlert,
+    resolveAlert,
+    activeAlerts,
+    resolvedAlerts,
     isSidebarExpanded,
     setIsSidebarExpanded,
     toggleSidebar,
@@ -226,6 +281,12 @@ export function AppProvider({ children }) {
     toggleOffline,
     offlineQueue,
     setOfflineQueue,
+    focusedPlan,
+    setFocusedPlan,
+    clearFocusedPlan,
+    alertPrefillData,
+    setAlertPrefillData,
+    draftAlertFromPlan,
   };
 
   return (

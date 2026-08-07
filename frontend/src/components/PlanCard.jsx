@@ -1,7 +1,14 @@
 import React, { useState } from 'react';
-import { CheckCircle2, XCircle, Edit3, ShieldAlert } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { CheckCircle2, XCircle, Edit3, ShieldAlert, MapPin, Bell, Navigation } from 'lucide-react';
+import { useApp } from '../state/AppContext';
+import { useActivityLog } from '../lib/activityLogger';
 
 export default function PlanCard({ plan, actionState = {}, onUpdateStatus }) {
+  const navigate = useNavigate();
+  const { logEvent } = useActivityLog();
+  const { setFocusedPlan, draftAlertFromPlan } = useApp();
+
   const [isEditing, setIsEditing] = useState(false);
   const [customNote, setCustomNote] = useState(actionState.notes || '');
 
@@ -18,6 +25,31 @@ export default function PlanCard({ plan, actionState = {}, onUpdateStatus }) {
   const handleSaveEdit = () => {
     onUpdateStatus(plan.id, status, customNote);
     setIsEditing(false);
+  };
+
+  // Process Evacuation: Focus map on this plan and navigate to Command Map
+  const handleProcessEvacuation = () => {
+    setFocusedPlan(plan);
+
+    logEvent({
+      type: 'observation',
+      message: `Map focused on evacuation plan: "${plan.title}" — ${plan.sourceLocation} → ${plan.targetShelterName} (${plan.distanceKm} km)`,
+      timestamp: new Date().toISOString(),
+    });
+
+    logEvent({
+      type: 'observation',
+      message: `Computed shortest route: ${plan.distanceKm} km to ${plan.targetShelterName} (straight-line approximation)`,
+      timestamp: new Date().toISOString(),
+    });
+
+    navigate('/map');
+  };
+
+  // Draft Alert: Auto-populate AlertComposer and navigate to Alert Centre
+  const handleDraftAlert = () => {
+    draftAlertFromPlan(plan);
+    navigate('/alerts');
   };
 
   return (
@@ -124,6 +156,26 @@ export default function PlanCard({ plan, actionState = {}, onUpdateStatus }) {
           </button>
         </div>
       ) : null}
+
+      {/* Evacuation Actions (only for approved plans) */}
+      {status === 'approved' && (
+        <div className="mb-4 flex items-center gap-2 flex-wrap">
+          <button
+            onClick={handleProcessEvacuation}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-xs shadow-md transition-all"
+          >
+            <Navigation className="w-4 h-4" />
+            <span>Process Evacuation</span>
+          </button>
+          <button
+            onClick={handleDraftAlert}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md transition-all"
+          >
+            <Bell className="w-4 h-4" />
+            <span>Draft Alert</span>
+          </button>
+        </div>
+      )}
 
       {/* Decision Action Buttons */}
       <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200">

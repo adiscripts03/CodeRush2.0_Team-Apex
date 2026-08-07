@@ -213,14 +213,155 @@ export async function generateAgenticPlan({ atRiskHospitals, atRiskShelters, saf
 
     const data = await response.json();
     if (data.success && data.plans) {
-      return { plans: data.plans, source: data.source };
+      // Enrich agentic plans with map coordinates and routes
+      const enrichedPlans = await enrichPlans(data.plans, { atRiskHospitals, atRiskShelters, safeShelters, shelterCapacities });
+      return { plans: enrichedPlans, source: data.source };
     }
     throw new Error('Invalid agentic plan response');
   } catch (err) {
     console.warn('Agentic plan call failed, falling back to rule-based plan:', err);
-    // Fallback to rule-based synchronous plan
-    const fallbackPlans = generateEvacuationPlan({ atRiskHospitals, atRiskShelters, safeShelters, shelterCapacities });
-    return { plans: fallbackPlans, source: 'fallback' };
+    // Fallback to rule-based synchronous plan (and enrich it)
+    const { fullPlans } = await generateFullEvacuationPlan({ atRiskHospitals, atRiskShelters, safeShelters, shelterCapacities });
+    return { plans: fullPlans, source: 'fallback' };
   }
 }
 // --- END AGENTIC RESPONSE PLANNER ---
+
+export async function enrichPlans(basePlans, { atRiskHospitals, atRiskShelters, safeShelters }) {
+  return await Promise.all(basePlans.map(async (plan) => {
+    // Determine the source feature (affected location)
+    const sourceFeature = [...atRiskHospitals, ...atRiskShelters].find(f => {
+      const name = f.properties?.name || f.properties?.['name:en'] || f.name;
+      return name === plan.sourceLocation;
+    });
+
+    // Determine the target shelter feature
+    const targetFeature = safeShelters.find(s => {
+      const name = s.properties?.name || s.properties?.['addr:housename'] || s.name;
+      return name === plan.targetShelterName;
+    });
+
+    // Build affected location object
+    let affectedLocation = {
+      name: plan.sourceLocation,
+      coords: null,
+      type: plan.type === 'Medical Evacuation' ? 'hospital' : 'shelter',
+    };
+
+    if (sourceFeature?.geometry) {
+      try {
+        const pt = sourceFeature.geometry.type === 'Point'
+          ? sourceFeature
+          : turf.centroid(sourceFeature);
+        affectedLocation.coords = [pt.geometry.coordinates[1], pt.geometry.coordinates[0]]; // [lat, lng]
+      } catch (e) { /* skip */ }
+    } else if (plan.routePolyline?.[0]) {
+      affectedLocation.coords = plan.routePolyline[0]; // Fallback to existing route start point
+    }
+
+    // Build assigned shelter
+    let assignedShelter = {
+      name: plan.targetShelterName,
+      coords: null,
+      capacityAvailable: plan.allocatedCapacity,
+    };
+
+    if (targetFeature?.geometry) {
+      try {
+        const pt = targetFeature.geometry.type === 'Point'
+          ? targetFeature
+          : turf.centroid(targetFeature);
+        assignedShelter.coords = [pt.geometry.coordinates[1], pt.geometry.coordinates[0]];
+      } catch (e) { /* skip */ }
+    } else if (plan.routePolyline?.[1]) {
+      assignedShelter.coords = plan.routePolyline[1];
+    }
+
+    // Build assigned hospitals list (relevant at-risk hospitals for this plan)
+    const assignedHospitals = plan.type === 'Medical Evacuation'
+      ? [{
+          name: plan.sourceLocation,
+          coords: affectedLocation.coords,
+          estimatedPatients: plan.estimatedPatients,
+        }]
+      : [];
+
+    let evacuationRoute = null;
+
+    if (affectedLocation.coords && assignedShelter.coords) {
+      let srcCoords = affectedLocation.coords; // [lat, lng]
+      let dstCoords = assignedShelter.coords;
+      let distanceKm = plan.distanceKm || 0;
+      
+      let fetchedPolyline = [srcCoords, dstCoords];
+      let routeType = 'straight-line';
+      let routeNote = 'Simplified straight-line route.';
+
+      if (distanceKm <= 0 || (srcCoords[0] === dstCoords[0] && srcCoords[1] === dstCoords[1])) {
+        distanceKm = 0;
+        fetchedPolyline = []; // No route line for zero-distance
+        routeNote = 'Source and destination are at the same location.';
+      } else {
+        // Try fetching detailed road route via OSRM Demo Server
+        try {
+          // OSRM expects: /route/v1/driving/{longitude},{latitude};{longitude},{latitude}
+          const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${srcCoords[1]},${srcCoords[0]};${dstCoords[1]},${dstCoords[0]}?geometries=geojson`;
+          const routeRes = await fetch(osrmUrl);
+          if (routeRes.ok) {
+            const routeData = await routeRes.json();
+            if (routeData.routes && routeData.routes.length > 0) {
+              const osrmRoute = routeData.routes[0];
+              // OSRM returns coordinates as [lon, lat], Leaflet polyline needs [lat, lon]
+              fetchedPolyline = osrmRoute.geometry.coordinates.map(coord => [coord[1], coord[0]]);
+              distanceKm = parseFloat((osrmRoute.distance / 1000).toFixed(2));
+              routeType = 'osrm-road-network';
+              routeNote = 'Detailed road network route via OSRM.';
+            }
+          }
+        } catch (err) {
+          console.warn('OSRM routing failed, falling back to straight line.', err);
+        }
+      }
+
+      evacuationRoute = {
+        from: srcCoords,
+        to: dstCoords,
+        distanceKm,
+        polyline: fetchedPolyline,
+        type: routeType,
+        note: routeNote,
+      };
+      
+      // Update the plan's overall distance if we got a better one from OSRM
+      plan.distanceKm = distanceKm;
+    }
+
+    return {
+      ...plan,
+      affectedLocation,
+      assignedShelters: [assignedShelter],
+      assignedHospitals,
+      evacuationRoutes: evacuationRoute ? [evacuationRoute] : [],
+      timestamp: plan.timestamp || new Date().toISOString(),
+    };
+  }));
+}
+
+/**
+ * @param {Object} params
+ * @param {Array} params.atRiskHospitals - Hospitals inside the hazard extent
+ * @param {Array} params.atRiskShelters  - Shelters inside the hazard extent
+ * @param {Array} params.safeShelters    - Shelters outside the hazard extent
+ * @param {Object} params.shelterCapacities - Capacity lookup data
+ * @returns {{ plans: Array, fullPlans: Array }} — plans = original format, fullPlans = enriched
+ */
+export async function generateFullEvacuationPlan({ atRiskHospitals, atRiskShelters, safeShelters, shelterCapacities }) {
+  // Step 1: Generate rule-based plans using existing logic (no modification)
+  const basePlans = generateEvacuationPlan({ atRiskHospitals, atRiskShelters, safeShelters, shelterCapacities });
+
+  // Step 2: Enrich each plan with structured evacuation data (now async for routing)
+  const fullPlans = await enrichPlans(basePlans, { atRiskHospitals, atRiskShelters, safeShelters });
+
+  return { plans: basePlans, fullPlans };
+}
+// --- END FULL EVACUATION PLAN GENERATOR ---
