@@ -1,0 +1,162 @@
+{
+  "summary": {
+    "total_events": 8,
+    "max_magnitude": 6.2,
+    "hazard_level": "High - Active Aftershock Sequence",
+    "last_updated": "2026-08-07T14:30:00Z"
+  },
+  "fault_lines": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": { "name": "Western Boundary Shear Zone", "risk": "High" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [76.15, 10.25],
+            [76.35, 9.85],
+            [76.55, 9.45],
+            [76.75, 9.15],
+            [76.95, 8.85]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": { "name": "Highland Tectonic Lineament", "risk": "Moderate" },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [76.80, 10.10],
+            [76.92, 9.70],
+            [77.05, 9.35],
+            [77.15, 8.95]
+          ]
+        }
+      }
+    ]
+  },
+  "events": [
+    {
+      "id": "eq-2026-001",
+      "place": "Idukki Reservoir Thrust Zone",
+      "magnitude": 6.2,
+      "depth_km": 10.4,
+      "lat": 9.782,
+      "lng": 76.915,
+      "timestamp": "2026-08-07T13:42:10Z",
+      "intensity_mmi": "VII (Very Strong)",
+      "pga_g": 0.28,
+      "alert_level": "Red",
+      "tsunami_threat": false,
+      "affected_districts": ["Idukki", "Kottayam", "Ernakulam"],
+      "advisory": "Structural integrity checks required for hydroelectric dams. Landslide risk high along slopes."
+    },
+    {
+      "id": "eq-2026-002",
+      "place": "Kottayam Fault Intersection",
+      "magnitude": 5.4,
+      "depth_km": 8.1,
+      "lat": 9.591,
+      "lng": 76.524,
+      "timestamp": "2026-08-07T12:15:30Z",
+      "intensity_mmi": "VI (Strong)",
+      "pga_g": 0.18,
+      "alert_level": "Orange",
+      "tsunami_threat": false,
+      "affected_districts": ["Kottayam", "Alappuzha"],
+      "advisory": "Moderate ground shaking. Inspect old masonry structures and bridges."
+    },
+    {
+      "id": "eq-2026-003",
+      "place": "Pamba River Rift Axis",
+      "magnitude": 4.8,
+      "depth_km": 14.2,
+      "lat": 9.350,
+      "lng": 76.710,
+      "timestamp": "2026-08-07T10:04:45Z",
+      "intensity_mmi": "V (Moderate)",
+      "pga_g": 0.09,
+      "alert_level": "Yellow",
+      "tsunami_threat": false,
+      "affected_districts": ["Pathanamthitta"],
+      "advisory": "Light tremors felt. No immediate structural emergency reported."
+    },
+    {
+      "id": "eq-2026-004",
+      "place": "Alappuzha Offshore Margin",
+      "magnitude": 5.1,
+      "depth_km": 18.5,
+      "lat": 9.480,
+      "lng": 76.220,
+      "timestamp": "2026-08-07T08:22:00Z",
+      "intensity_mmi": "V (Moderate)",
+      "pga_g": 0.12,
+      "alert_level": "Yellow",
+      "tsunami_threat": false,
+      "affected_districts": ["Alappuzha Coastal Zone"],
+      "advisory": "Subsea epicenter. Coastal sea-level sensors monitoring for localized surge anomalies."
+    },
+    {
+      "id": "eq-2026-005",
+      "place": "Northern High-Range Lineament",
+      "magnitude": 4.2,
+      "depth_km": 6.8,
+      "lat": 10.050,
+      "lng": 76.850,
+      "timestamp": "2026-08-07T05:50:12Z",
+      "intensity_mmi": "IV (Light)",
+      "pga_g": 0.05,
+      "alert_level": "Green",
+      "tsunami_threat": false,
+      "affected_districts": ["Ernakulam", "Idukki Border"],
+      "advisory": "Minor tremor recorded by telemetry network."
+    },
+    {
+      "id": "eq-2026-006",
+      "place": "Mundakayam Micro-Fault",
+      "magnitude": 3.9,
+      "depth_km": 12.0,
+      "lat": 9.530,
+      "lng": 76.880,
+      "timestamp": "2026-08-06T22:10:00Z",
+      "intensity_mmi": "III (Weak)",
+      "pga_g": 0.03,
+      "alert_level": "Green",
+      "tsunami_threat": false,
+      "affected_districts": ["Kottayam East"],
+      "advisory": "Micro-earthquake aftershock."
+    },
+    {
+      "id": "eq-2026-007",
+      "place": "Vembanad Lake Bed Axis",
+      "magnitude": 4.5,
+      "depth_km": 9.6,
+      "lat": 9.610,
+      "lng": 76.380,
+      "timestamp": "2026-08-06T18:40:15Z",
+      "intensity_mmi": "IV (Light)",
+      "pga_g": 0.07,
+      "alert_level": "Yellow",
+      "tsunami_threat": false,
+      "affected_districts": ["Alappuzha", "Kottayam"],
+      "advisory": "Felt across water body. Hydro-gauge calibration check advised."
+    },
+    {
+      "id": "eq-2026-008",
+      "place": "Southern Hills Shear Segment",
+      "magnitude": 5.7,
+      "depth_km": 11.0,
+      "lat": 9.120,
+      "lng": 76.980,
+      "timestamp": "2026-08-06T14:12:00Z",
+      "intensity_mmi": "VI (Strong)",
+      "pga_g": 0.21,
+      "alert_level": "Orange",
+      "tsunami_threat": false,
+      "affected_districts": ["Pathanamthitta", "Kollam Border"],
+      "advisory": "Strong foreshock event. Emergency response units placed on standby."
+    }
+  ]
+}

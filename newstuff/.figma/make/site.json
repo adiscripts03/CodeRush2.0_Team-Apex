@@ -1,0 +1,10 @@
+{
+  "description": "This disaster management system leverages satellite imagery and geospatial data to detect natural hazards, estimate impacts, and optimize emergency response planning for local authorities and NGOs.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

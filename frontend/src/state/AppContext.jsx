@@ -1,0 +1,305 @@
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { useActivityLog } from '../lib/activityLogger';
+
+const AppContext = createContext(null);
+
+export function AppProvider({ children }) {
+  const { logEvent } = useActivityLog();
+
+  // Timeline state
+  const [timelineData, setTimelineData] = useState(null);
+  const [currentKeyframeIndex, setCurrentKeyframeIndex] = useState(0);
+  const [isPlayingTimeline, setIsPlayingTimeline] = useState(false);
+
+  // Layer visibility state
+  const [layerVisibility, setLayerVisibility] = useState({
+    hospitals: true,
+    shelters: true,
+    roads: true,
+    rivers: true,
+    flood: true,
+  });
+
+  // Loaded GeoJSON datasets
+  const [geoData, setGeoData] = useState({
+    hospitals: null,
+    shelters: null,
+    roads: null,
+    rivers: null,
+    floodPolygon: null,
+    shelterCapacities: null,
+    sensors: null,
+    isLoading: true,
+    error: null,
+  });
+
+  // Response planning state
+  const [recommendedActions, setRecommendedActions] = useState([]);
+  const [actionStates, setActionStates] = useState({}); // id -> { status: 'pending'|'approved'|'rejected', notes: string }
+  
+  // Sent alerts state
+  const [sentAlerts, setSentAlerts] = useState([]);
+
+  // Offline / low-bandwidth mode simulation
+  const [isOffline, setIsOffline] = useState(false);
+  const [offlineQueue, setOfflineQueue] = useState([]);
+
+  // Sidebar expansion state
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const toggleSidebar = useCallback(() => {
+    setIsSidebarExpanded(prev => !prev);
+  }, []);
+
+  // Focused evacuation plan state (view-state toggle for MapView)
+  const [focusedPlan, setFocusedPlan] = useState(null);
+  const clearFocusedPlan = useCallback(() => {
+    setFocusedPlan(null);
+    logEvent({
+      type: 'observation',
+      message: 'Exited focused evacuation plan view. Returning to full map.',
+      timestamp: new Date().toISOString(),
+    });
+  }, [logEvent]);
+
+  // Alert prefill data (auto-populated from evacuation plan)
+  const [alertPrefillData, setAlertPrefillData] = useState(null);
+
+  // Fetch initial event timeline and static datasets
+  useEffect(() => {
+    async function loadInitialData() {
+      try {
+        const [
+          timelineRes,
+          hospitalsRes,
+          sheltersRes,
+          roadsRes,
+          riversRes,
+          capacitiesRes,
+          sensorsRes,
+          seismicRes
+        ] = await Promise.all([
+          fetch('/data/event_timeline.json'),
+          fetch('/data/hospitals.geojson'),
+          fetch('/data/shelters.geojson'),
+          fetch('/data/roads.geojson'),
+          fetch('/data/rivers.geojson'),
+          fetch('/data/shelters_capacity.json'),
+          fetch('/data/sensor_log.json'),
+          fetch('/data/seismic_events.json')
+        ]);
+
+        const timeline = await timelineRes.json();
+        const hospitals = await hospitalsRes.json();
+        const shelters = await sheltersRes.json();
+        const roads = await roadsRes.json();
+        const rivers = await riversRes.json();
+        const capacities = await capacitiesRes.json();
+        const sensors = await sensorsRes.json();
+        const seismic = await seismicRes.json();
+
+        setTimelineData(timeline);
+
+        // Load initial keyframe flood polygon
+        const initialKeyframe = timeline.keyframes[0];
+        const floodRes = await fetch(`/data/${initialKeyframe.hazard_polygon_file}`);
+        const floodGeojson = await floodRes.json();
+
+        setGeoData({
+          hospitals,
+          shelters,
+          roads,
+          rivers,
+          floodPolygon: floodGeojson,
+          shelterCapacities: capacities,
+          sensors,
+          seismic,
+          isLoading: false,
+          error: null,
+        });
+
+      } catch (err) {
+        console.error('Error loading geojson data:', err);
+        setGeoData(prev => ({ ...prev, isLoading: false, error: err.message }));
+      }
+    }
+
+    loadInitialData();
+  }, []);
+
+  // Handle keyframe change
+  const setKeyframeIndex = useCallback(async (index) => {
+    if (!timelineData || !timelineData.keyframes[index]) return;
+    const keyframe = timelineData.keyframes[index];
+    setCurrentKeyframeIndex(index);
+
+    try {
+      const floodRes = await fetch(`/data/${keyframe.hazard_polygon_file}`);
+      const floodGeojson = await floodRes.json();
+      setGeoData(prev => ({ ...prev, floodPolygon: floodGeojson }));
+
+      // Log event
+      logEvent({
+        type: 'observation',
+        message: `Scrubbed timeline to ${keyframe.label || keyframe.timestamp}. Confidence: ${(keyframe.confidence * 100).toFixed(0)}%${keyframe.data_gap ? ' (Data Gap Warning)' : ''}`,
+        timestamp: new Date().toISOString(),
+        details: { keyframe }
+      });
+    } catch (err) {
+      console.error('Failed to load keyframe hazard polygon:', err);
+    }
+  }, [timelineData, logEvent]);
+
+  // Toggle layer visibility
+  const toggleLayer = useCallback((layerKey) => {
+    setLayerVisibility(prev => ({
+      ...prev,
+      [layerKey]: !prev[layerKey]
+    }));
+  }, []);
+
+  // Action state handlers (Approve, Edit, Reject)
+  const updateActionStatus = useCallback((actionId, newStatus, customNotes = '') => {
+    setActionStates(prev => {
+      const updated = {
+        ...prev,
+        [actionId]: {
+          status: newStatus, // 'approved' | 'rejected' | 'pending'
+          notes: customNotes || prev[actionId]?.notes || '',
+          updatedAt: new Date().toISOString()
+        }
+      };
+      return updated;
+    });
+
+    const actionObj = recommendedActions.find(a => a.id === actionId);
+    const actionTitle = actionObj ? actionObj.title : `Action #${actionId}`;
+
+    logEvent({
+      type: newStatus === 'approved' ? 'approval' : 'plan',
+      message: `Action "${actionTitle}" was marked as ${newStatus.toUpperCase()}${customNotes ? ` (Notes: ${customNotes})` : ''}.`,
+      timestamp: new Date().toISOString()
+    });
+  }, [recommendedActions, logEvent]);
+
+  const recordSentAlert = useCallback((alertRecord) => {
+    // Ensure every alert has a resolvedAt field (null = active)
+    const record = { ...alertRecord, resolvedAt: alertRecord.resolvedAt || null };
+    setSentAlerts(prev => [record, ...prev]);
+    logEvent({
+      type: 'alert',
+      message: `Emergency Alert sent to ${record.recipientEmail}: "${record.subject}"`,
+      timestamp: new Date().toISOString(),
+      details: record
+    });
+  }, [logEvent]);
+
+  // Resolve an alert (Option A: mark as resolved, keep in audit log)
+  const resolveAlert = useCallback((alertId) => {
+    const resolvedAt = new Date().toISOString();
+    setSentAlerts(prev => prev.map(a =>
+      a.id === alertId ? { ...a, resolvedAt, status: 'RESOLVED' } : a
+    ));
+    const alert = sentAlerts.find(a => a.id === alertId);
+    logEvent({
+      type: 'alert',
+      message: `Alert "${alert?.subject || alertId}" marked as RESOLVED.`,
+      timestamp: resolvedAt,
+      details: { alertId, resolvedAt },
+    });
+  }, [sentAlerts, logEvent]);
+
+  // Computed: active vs resolved alerts
+  const activeAlerts = useMemo(() => sentAlerts.filter(a => !a.resolvedAt), [sentAlerts]);
+  const resolvedAlerts = useMemo(() => sentAlerts.filter(a => !!a.resolvedAt), [sentAlerts]);
+
+  // Draft alert from a plan (auto-populate AlertComposer)
+  const draftAlertFromPlan = useCallback((plan) => {
+    const shelterNames = plan.assignedShelters?.map(s => s.name).join(', ') || plan.targetShelterName;
+    const routeSummary = plan.evacuationRoutes?.map(r => `${r.distanceKm} km (${r.type})`).join(', ') || `${plan.distanceKm} km`;
+
+    setAlertPrefillData({
+      subject: `URGENT: Evacuation Directive — ${plan.title}`,
+      message: `EVACUATION ALERT\n\nAffected Location: ${plan.sourceLocation}\nAssigned Shelter(s): ${shelterNames}\nEstimated Evacuees: ${plan.estimatedPatients}\nRoute Distance: ${routeSummary}\n\nAction Required: ${plan.description}\n\nThis alert requires immediate coordination. All response units acknowledge receipt.`,
+    });
+
+    logEvent({
+      type: 'plan',
+      message: `Alert draft auto-populated from evacuation plan: "${plan.title}"`,
+      timestamp: new Date().toISOString(),
+    });
+  }, [logEvent]);
+
+  // Flush offline queue when reconnected
+  useEffect(() => {
+    if (!isOffline && offlineQueue.length > 0) {
+      logEvent({
+        type: 'observation',
+        message: `System reconnected. Flushing ${offlineQueue.length} queued alert(s) to server...`,
+        timestamp: new Date().toISOString()
+      });
+      // In a real app, we would re-send these via fetch. 
+      // For the simulation, we just clear the queue and assume they are processed.
+      setOfflineQueue([]);
+    }
+  }, [isOffline, offlineQueue.length, logEvent]);
+
+  const toggleOffline = useCallback(() => {
+    setIsOffline(prev => {
+      const newState = !prev;
+      logEvent({
+        type: 'observation',
+        message: newState ? 'Network simulation: System disconnected (Offline Mode)' : 'Network simulation: System reconnected (Online Mode)',
+        timestamp: new Date().toISOString()
+      });
+      return newState;
+    });
+  }, [logEvent]);
+
+  const value = {
+    timelineData,
+    currentKeyframeIndex,
+    currentKeyframe: timelineData?.keyframes?.[currentKeyframeIndex] || null,
+    setKeyframeIndex,
+    isPlayingTimeline,
+    setIsPlayingTimeline,
+    layerVisibility,
+    toggleLayer,
+    geoData,
+    recommendedActions,
+    setRecommendedActions,
+    actionStates,
+    updateActionStatus,
+    sentAlerts,
+    recordSentAlert,
+    resolveAlert,
+    activeAlerts,
+    resolvedAlerts,
+    isSidebarExpanded,
+    setIsSidebarExpanded,
+    toggleSidebar,
+    isOffline,
+    toggleOffline,
+    offlineQueue,
+    setOfflineQueue,
+    focusedPlan,
+    setFocusedPlan,
+    clearFocusedPlan,
+    alertPrefillData,
+    setAlertPrefillData,
+    draftAlertFromPlan,
+  };
+
+  return (
+    <AppContext.Provider value={value}>
+      {children}
+    </AppContext.Provider>
+  );
+}
+
+export function useApp() {
+  const context = useContext(AppContext);
+  if (!context) {
+    throw new Error('useApp must be used within an AppProvider');
+  }
+  return context;
+}
