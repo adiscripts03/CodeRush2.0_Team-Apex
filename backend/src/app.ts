@@ -2,6 +2,7 @@ import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import { pinoHttp } from "pino-http";
+import { floodRouter } from "./api/flood.routes.js";
 import { gisRouter } from "./api/gis.routes.js";
 import { healthRouter } from "./api/health.routes.js";
 import { hazardRouter } from "./api/hazard.routes.js";
@@ -24,6 +25,8 @@ export function createApp(): express.Express {
   app.use("/api/gis", gisRouter);
   app.use("/api/hazards", hazardRouter);
   app.use("/api/replay", replayRouter);
+  app.use("/api/flood", floodRouter);
+  app.use("/flood", floodRouter);
 
   app.use(errorHandler);
 

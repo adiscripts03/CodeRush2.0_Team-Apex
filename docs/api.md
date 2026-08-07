@@ -165,3 +165,36 @@ Valid event types:
 
 Response: `202 Accepted` with `{ "accepted": true }`.
 
+## `GET /flood/current` (alias `/api/flood/current`)
+
+Returns current detected flood extent snapshot and GeoJSON FeatureCollection.
+
+## `GET /flood/history` (alias `/api/flood/history`)
+
+Returns list of all historical flood detection snapshots.
+
+## `POST /flood/detect` (alias `/api/flood/detect`)
+
+Executes NDWI flood detection on Sentinel-2 surface reflectance band grid cells and stores flood polygons.
+
+Request body:
+
+```json
+{
+  "timestamp": "2018-08-15T06:00:00.000Z",
+  "sourceImageId": "SENTINEL2_20180815_KERALA",
+  "threshold": 0.3,
+  "cloudCoverFraction": 0.05,
+  "cells": [
+    { "lng": 76.25, "lat": 9.95, "green": 0.5, "nir": 0.1 }
+  ]
+}
+```
+
+Response: `201 Created` with `DetectionResult`.
+
+## `GET /flood/change/:timestamp` (alias `/api/flood/change/:timestamp`)
+
+Returns spatial change analysis (expanded, receded, persisted area, expansion rate) comparing target timestamp to prior snapshot.
+
+

@@ -1,0 +1,39 @@
+{
+  "sourceImageId": "SENTINEL2_20180815_KERALA_B03_B08",
+  "provider": "Copernicus Sentinel-2",
+  "timestamps": ["2018-08-15T00:00:00.000Z", "2018-08-15T06:00:00.000Z", "2018-08-15T12:00:00.000Z"],
+  "snapshots": [
+    {
+      "timestamp": "2018-08-15T00:00:00.000Z",
+      "cloudCoverFraction": 0.04,
+      "cells": [
+        { "lng": 76.25, "lat": 9.95, "green": 0.45, "nir": 0.10 },
+        { "lng": 76.30, "lat": 9.98, "green": 0.50, "nir": 0.12 },
+        { "lng": 76.32, "lat": 10.02, "green": 0.48, "nir": 0.11 }
+      ]
+    },
+    {
+      "timestamp": "2018-08-15T06:00:00.000Z",
+      "cloudCoverFraction": 0.08,
+      "cells": [
+        { "lng": 76.25, "lat": 9.95, "green": 0.46, "nir": 0.09 },
+        { "lng": 76.30, "lat": 9.98, "green": 0.52, "nir": 0.10 },
+        { "lng": 76.32, "lat": 10.02, "green": 0.50, "nir": 0.10 },
+        { "lng": 76.22, "lat": 9.92, "green": 0.48, "nir": 0.12 },
+        { "lng": 76.38, "lat": 10.05, "green": 0.47, "nir": 0.11 }
+      ]
+    },
+    {
+      "timestamp": "2018-08-15T12:00:00.000Z",
+      "cloudCoverFraction": 0.05,
+      "cells": [
+        { "lng": 76.25, "lat": 9.95, "green": 0.48, "nir": 0.08 },
+        { "lng": 76.30, "lat": 9.98, "green": 0.54, "nir": 0.09 },
+        { "lng": 76.32, "lat": 10.02, "green": 0.52, "nir": 0.09 },
+        { "lng": 76.22, "lat": 9.92, "green": 0.50, "nir": 0.10 },
+        { "lng": 76.38, "lat": 10.05, "green": 0.49, "nir": 0.10 },
+        { "lng": 76.19, "lat": 9.90, "green": 0.47, "nir": 0.11 }
+      ]
+    }
+  ]
+}

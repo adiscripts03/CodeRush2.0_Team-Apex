@@ -8,18 +8,26 @@ import { fetchGisLayerFeatures } from "../services/gis.service";
 
 interface EocMapProps {
   floodExtent?: GeoJSON.FeatureCollection | null;
+  expandedExtent?: GeoJSON.FeatureCollection | null;
+  recededExtent?: GeoJSON.FeatureCollection | null;
 }
 
 const FLOOD_SOURCE_ID = "replay-flood-extent";
 const FLOOD_FILL_LAYER_ID = "replay-flood-fill";
 const FLOOD_OUTLINE_LAYER_ID = "replay-flood-outline";
 
+const EXPANDED_SOURCE_ID = "flood-expanded-extent";
+const EXPANDED_FILL_LAYER_ID = "flood-expanded-fill";
+
+const RECEDED_SOURCE_ID = "flood-receded-extent";
+const RECEDED_FILL_LAYER_ID = "flood-receded-fill";
+
 const emptyFeatureCollection: GeoJSON.FeatureCollection = {
   type: "FeatureCollection",
   features: []
 };
 
-export function EocMap({ floodExtent }: EocMapProps): ReactElement {
+export function EocMap({ floodExtent, expandedExtent, recededExtent }: EocMapProps): ReactElement {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
 
@@ -85,6 +93,38 @@ export function EocMap({ floodExtent }: EocMapProps): ReactElement {
           "line-opacity": 0.7
         }
       });
+
+      // Add expanded flood extent layer (red/rose)
+      map.addSource(EXPANDED_SOURCE_ID, {
+        type: "geojson",
+        data: expandedExtent ?? emptyFeatureCollection
+      });
+
+      map.addLayer({
+        id: EXPANDED_FILL_LAYER_ID,
+        type: "fill",
+        source: EXPANDED_SOURCE_ID,
+        paint: {
+          "fill-color": "#e11d48",
+          "fill-opacity": 0.5
+        }
+      });
+
+      // Add receded flood extent layer (emerald green)
+      map.addSource(RECEDED_SOURCE_ID, {
+        type: "geojson",
+        data: recededExtent ?? emptyFeatureCollection
+      });
+
+      map.addLayer({
+        id: RECEDED_FILL_LAYER_ID,
+        type: "fill",
+        source: RECEDED_SOURCE_ID,
+        paint: {
+          "fill-color": "#059669",
+          "fill-opacity": 0.4
+        }
+      });
     });
 
     return () => {
@@ -93,18 +133,28 @@ export function EocMap({ floodExtent }: EocMapProps): ReactElement {
     };
   }, []);
 
-  // Update flood extent data whenever the prop changes
+  // Update flood extent & change data whenever props change
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !map.isStyleLoaded()) {
       return;
     }
 
-    const source = map.getSource(FLOOD_SOURCE_ID) as mapboxgl.GeoJSONSource | undefined;
-    if (source) {
-      source.setData(floodExtent ?? emptyFeatureCollection);
+    const floodSource = map.getSource(FLOOD_SOURCE_ID) as mapboxgl.GeoJSONSource | undefined;
+    if (floodSource) {
+      floodSource.setData(floodExtent ?? emptyFeatureCollection);
     }
-  }, [floodExtent]);
+
+    const expandedSource = map.getSource(EXPANDED_SOURCE_ID) as mapboxgl.GeoJSONSource | undefined;
+    if (expandedSource) {
+      expandedSource.setData(expandedExtent ?? emptyFeatureCollection);
+    }
+
+    const recededSource = map.getSource(RECEDED_SOURCE_ID) as mapboxgl.GeoJSONSource | undefined;
+    if (recededSource) {
+      recededSource.setData(recededExtent ?? emptyFeatureCollection);
+    }
+  }, [floodExtent, expandedExtent, recededExtent]);
 
   if (frontendEnv.mapboxAccessToken.length === 0) {
     return (

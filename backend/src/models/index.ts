@@ -7,3 +7,7 @@ export { HumanApprovalModel } from "./human-approval.model.js";
 export { ReplaySnapshotModel } from "./replay-snapshot.model.js";
 export { ReplayTimelineModel } from "./replay-timeline.model.js";
 export { SystemHealthSnapshotModel } from "./system-health-snapshot.model.js";
+export { FloodPolygonModel } from "./flood-polygon.model.js";
+export { FloodSnapshotModel } from "./flood-snapshot.model.js";
+export { DetectionResultModel } from "./detection-result.model.js";
+

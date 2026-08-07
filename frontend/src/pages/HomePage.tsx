@@ -1,12 +1,15 @@
-import type { ReactElement } from "react";
+import { useEffect, useState, type ReactElement } from "react";
 import { EocMap } from "../components/EocMap";
+import { FloodAnalysisPanel } from "../components/FloodAnalysisPanel";
 import { ReplayControls } from "../components/ReplayControls";
 import { SnapshotPanel } from "../components/SnapshotPanel";
 import { StatusPill } from "../components/StatusPill";
 import { frontendEnv } from "../config/env";
+import type { ChangeDetectionResponse, FloodSnapshot } from "../flood/flood.types";
 import { useGisLayers } from "../hooks/useGisLayers";
 import { useBackendHealth } from "../hooks/useBackendHealth";
 import { useReplayController } from "../hooks/useReplayController";
+import { fetchCurrentFlood, fetchFloodChange } from "../services/flood.service";
 import { formatMongoStatus } from "../services/health.service";
 
 export function HomePage(): ReactElement {
@@ -15,14 +18,33 @@ export function HomePage(): ReactElement {
   const replay = useReplayController();
   const hasMapboxToken = frontendEnv.mapboxAccessToken.length > 0;
 
+  const [floodSnapshot, setFloodSnapshot] = useState<FloodSnapshot | null>(null);
+  const [changeData, setChangeData] = useState<ChangeDetectionResponse | null>(null);
+  const [showChangeOverlay, setShowChangeOverlay] = useState(true);
+
+  // Fetch current flood snapshot & change detection when replay timestamp changes
+  useEffect(() => {
+    fetchCurrentFlood()
+      .then((res) => {
+        setFloodSnapshot(res.snapshot);
+      })
+      .catch(() => {});
+
+    if (replay.activeSnapshot?.timestamp) {
+      fetchFloodChange(replay.activeSnapshot.timestamp)
+        .then((res) => setChangeData(res))
+        .catch(() => setChangeData(null));
+    }
+  }, [replay.activeSnapshot]);
+
   return (
     <main className="min-h-screen bg-zinc-50 text-zinc-950">
       <section className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-10">
         <div>
           <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">Emergency Operations Center</p>
-          <h1 className="mt-2 text-3xl font-semibold">Kerala Floods 2018 Foundation</h1>
+          <h1 className="mt-2 text-3xl font-semibold">Kerala Floods 2018 Intelligence Engine</h1>
           <p className="mt-3 max-w-3xl text-base leading-7 text-zinc-700">
-            Simulation-first disaster management system with historical replay and traceable infrastructure.
+            Simulation-first disaster management system with Sentinel-2 flood extent detection, spatial change analysis, historical replay, and traceable infrastructure.
           </p>
         </div>
 
@@ -63,9 +85,22 @@ export function HomePage(): ReactElement {
           onStepBackward={replay.stepBackward}
         />
 
+        {/* Flood Detection & Change Intelligence Panel */}
+        <FloodAnalysisPanel
+          snapshot={floodSnapshot}
+          changeData={changeData}
+          showChangeOverlay={showChangeOverlay}
+          isLoading={replay.isLoading}
+          onToggleChangeOverlay={setShowChangeOverlay}
+        />
+
         {/* Map + GIS Layers sidebar */}
         <section className="grid gap-4 lg:grid-cols-[1fr_18rem]">
-          <EocMap floodExtent={replay.activeSnapshot?.state.floodExtent ?? null} />
+          <EocMap
+            floodExtent={replay.activeSnapshot?.state.floodExtent ?? null}
+            expandedExtent={showChangeOverlay && changeData ? changeData.expandedFeatures : null}
+            recededExtent={showChangeOverlay && changeData ? changeData.recededFeatures : null}
+          />
           <aside className="rounded border border-zinc-200 bg-white p-5 shadow-sm">
             <h2 className="text-base font-semibold">GIS Layers</h2>
             <div className="mt-4 flex flex-col gap-3">
