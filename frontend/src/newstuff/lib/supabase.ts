@@ -1,11 +1,11 @@
-import { projectId, publicAnonKey } from '../../utils/supabase/info'
+import { apiUrl } from '../../lib/api'
 
-const BASE = `https://${projectId}.supabase.co/functions/v1/make-server-12f1d05f`
+const BASE = apiUrl('/api/proxy/supabase/functions/v1/make-server-12f1d05f')
 
 async function call(path: string, method = 'GET', body?: unknown) {
   const res = await fetch(`${BASE}${path}`, {
     method,
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${publicAnonKey}` },
+    headers: { 'Content-Type': 'application/json' },
     body: body ? JSON.stringify(body) : undefined,
   })
   return res.json()

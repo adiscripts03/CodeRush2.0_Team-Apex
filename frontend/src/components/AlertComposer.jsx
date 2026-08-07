@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Send, CheckCircle, AlertOctagon, Loader2, Mail, RefreshCw } from 'lucide-react';
 import { useApp } from '../state/AppContext';
+import { apiUrl } from '../lib/api';
 
 const DEMO_RECIPIENTS = [
   { label: 'Alappuzha District Collectorate Control Room', email: 'collectorate.alappuzha@disaster-command.gov' },
@@ -58,7 +59,7 @@ export default function AlertComposer() {
         return;
       }
 
-      const response = await fetch('/api/send-alert', {
+      const response = await fetch(apiUrl('/api/send-alert'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,4 +1,5 @@
 import * as turf from '@turf/turf';
+import { apiUrl } from './api';
 
 /**
  * Generates rule-based evacuation response recommendations.
@@ -188,7 +189,7 @@ export function generateEvacuationPlan({ atRiskHospitals, atRiskShelters, safeSh
 // The existing human-in-the-loop Approve/Reject gate is fully preserved.
 export async function generateAgenticPlan({ atRiskHospitals, atRiskShelters, safeShelters, shelterCapacities }) {
   try {
-    const response = await fetch('/api/agentic-plan', {
+    const response = await fetch(apiUrl('/api/agentic-plan'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

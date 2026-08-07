@@ -5,6 +5,7 @@ import 'leaflet.markercluster/dist/MarkerCluster.css'
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
 import 'leaflet.markercluster'
 import { db } from './lib/supabase'
+import { apiUrl } from '../lib/api'
 
 delete (L.Icon.Default.prototype as unknown as Record<string,unknown>)._getIconUrl
 L.Icon.Default.mergeOptions({ iconUrl:'', shadowUrl:'', iconRetinaUrl:'' })
@@ -326,7 +327,12 @@ async function overpassQuery(q:string,timeoutMs=28000):Promise<Place[]> {
   try {
     const ctrl=new AbortController()
     const t=setTimeout(()=>ctrl.abort(),timeoutMs)
-    const res=await fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(q),{signal:ctrl.signal})
+    const res=await fetch(apiUrl('/api/proxy/overpass'),{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({query:q}),
+      signal:ctrl.signal,
+    })
     clearTimeout(t)
     const json=await res.json()
     const out:Place[]=[]
@@ -398,7 +404,7 @@ async function fetchKeralaDistrictBoundaries():Promise<DistrictBoundary[]> {
   try {
     const q=`[out:json][timeout:35];area["ISO3166-2"="IN-KL"]["admin_level"="4"]->.k;relation["admin_level"="6"]["boundary"="administrative"](area.k);out geom;`
     const ctrl=new AbortController(); setTimeout(()=>ctrl.abort(),35000)
-    const res=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:`data=${encodeURIComponent(q)}`,signal:ctrl.signal})
+    const res=await fetch(apiUrl('/api/proxy/overpass'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:q}),signal:ctrl.signal})
     const d=await res.json()
     return ((d.elements||[]) as Record<string,unknown>[]).map(rel=>{
       const tags=rel.tags as Record<string,string>
@@ -1484,7 +1490,7 @@ async function fetchDelhiPlaces():Promise<{hospitals:Place[];schools:Place[]}> {
   async function overpassQ(q:string):Promise<Place[]> {
     try {
       const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),18000)
-      const res=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:`data=${encodeURIComponent(q)}`,signal:ctrl.signal})
+      const res=await fetch(apiUrl('/api/proxy/overpass'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:q}),signal:ctrl.signal})
       const d=await res.json()
       return (d.elements||[]).filter((e:Record<string,unknown>)=>e.lat||e.center).map((e:Record<string,unknown>)=>{
         const lat=(e.lat||(e.center as Record<string,number>)?.lat) as number
@@ -1981,7 +1987,7 @@ function LandingPage({onGuest, onAdmin}: {onGuest:()=>void; onAdmin:()=>void}) {
 
         {/* Centre: ministry line */}
         <div style={{position:'absolute',left:'50%',transform:'translateX(-50%)',textAlign:'center',pointerEvents:'none'}}>
-          <div style={{fontSize:9,color:'rgba(255,255,255,0.32)',letterSpacing:1.8,fontWeight:500,textTransform:'uppercase'}}>Ministry of Home Affairs · Government of India</div>
+          <div style={{fontSize:9,color:'rgba(255,255,255,0.32)',letterSpacing:1.8,fontWeight:500,textTransform:'uppercase'}}>Disaster Response Simulation Platform</div>
           <div style={{fontSize:8,color:'rgba(255,153,51,0.35)',letterSpacing:0.8,marginTop:2,fontFamily:devaFont}}>गृह मंत्रालय · भारत सरकार</div>
         </div>
 
@@ -2077,7 +2083,7 @@ function LandingPage({onGuest, onAdmin}: {onGuest:()=>void; onAdmin:()=>void}) {
               '🚑 EOC coordinating ambulance dispatch and patient transfer operations',
               '📡 Real-time OSRM routing · RainViewer radar · seismic network online',
               '🌧 IMD advisory: heavy rainfall forecast next 48 hours — stay alert',
-              '🛡️ NDMA · NDRF · State EOC Kerala · IMD · Ministry of Home Affairs',
+              '🛡️ NDMA · NDRF · State EOC Kerala · IMD · Emergency Response Network',
             ].map((t,i) => (
               <span key={`${ri}-${i}`} style={{fontSize:11,color:'rgba(255,255,255,0.6)',letterSpacing:0.3,padding:'0 6px'}}>
                 {t}<span style={{margin:'0 22px',color:'rgba(255,153,51,0.35)'}}>◆</span>
