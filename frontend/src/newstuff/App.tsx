@@ -841,6 +841,14 @@ function PublicView({onAdmin}:{onAdmin:()=>void}) {
         {layerBtn('HOSPITALS',showHospitals,()=>setShowHospitals(v=>!v),'#3b82f6')}
         {layerBtn('SAFEHOUSES',showSafehouses,()=>setShowSafehouses(v=>!v),'#10b981')}
         {layerBtn('WEATHER',showWeather,()=>setShowWeather(v=>!v),'#a78bfa')}
+        <button onClick={()=>window.location.assign('/sensor-map')} style={{padding:'7px 13px',background:'rgba(15,23,42,0.75)',border:'1.5px solid rgba(34,211,238,0.35)',color:'rgba(255,255,255,0.75)',fontSize:11,fontFamily:'system-ui,sans-serif',fontWeight:500,cursor:'pointer',borderRadius:3,backdropFilter:'blur(10px)',transition:'all 0.12s',display:'flex',alignItems:'center',gap:7}}>
+          <span style={{width:7,height:7,borderRadius:1,background:'#22d3ee',display:'inline-block',flexShrink:0}}/>
+          Hydro Map
+        </button>
+        <button onClick={()=>window.location.assign('/seismic')} style={{padding:'7px 13px',background:'rgba(15,23,42,0.75)',border:'1.5px solid rgba(249,115,22,0.35)',color:'rgba(255,255,255,0.75)',fontSize:11,fontFamily:'system-ui,sans-serif',fontWeight:500,cursor:'pointer',borderRadius:3,backdropFilter:'blur(10px)',transition:'all 0.12s',display:'flex',alignItems:'center',gap:7}}>
+          <span style={{width:7,height:7,borderRadius:1,background:'#f97316',display:'inline-block',flexShrink:0}}/>
+          Seismic Map
+        </button>
       </div>
 
       {/* Flood countdown — top center */}
@@ -2124,7 +2132,7 @@ export default function App({initialView='landing'}:{initialView?:AppView}={}) {
 
   return (
     <>
-      {view==='landing'&&<LandingPage onGuest={()=>setView('public')} onAdmin={()=>setLoginOpen(true)}/>}
+      {view==='landing'&&<LandingPage onGuest={()=>window.location.assign('/map')} onAdmin={()=>setLoginOpen(true)}/>}
       {view==='public'&&<PublicView onAdmin={()=>setLoginOpen(true)}/>}
       {view==='admin'&&<AdminView onLogout={()=>setView('landing')} onEarthquake={()=>setView('earthquake')}/>}
       {view==='earthquake'&&<EarthquakeView onBack={()=>setView('admin')}/>}

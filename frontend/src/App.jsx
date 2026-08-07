@@ -22,7 +22,7 @@ function MainLayout() {
       <div className="h-screen w-screen overflow-hidden bg-slate-950 text-slate-100">
         <Routes>
           <Route path="/" element={<NewStuffApp initialView="landing" />} />
-          <Route path="/map" element={<NewStuffApp initialView="public" />} />
+          <Route path="/map" element={<CommandMap />} />
         </Routes>
       </div>
     );
