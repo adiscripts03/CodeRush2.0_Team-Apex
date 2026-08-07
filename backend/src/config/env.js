@@ -10,6 +10,9 @@ export const env = {
   jwtSecret: process.env.JWT_SECRET,
   openaiApiKey: process.env.OPENAI_API_KEY,
   groqApiKey: process.env.GROQ_API_KEY,
+  supabaseProjectId: process.env.SUPABASE_PROJECT_ID,
+  supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
+  supabaseFunctionName: process.env.SUPABASE_FUNCTION_NAME || 'make-server-12f1d05f',
   smtp: {
     host: process.env.SMTP_HOST,
     port: process.env.SMTP_PORT,

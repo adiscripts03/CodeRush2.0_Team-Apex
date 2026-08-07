@@ -62,6 +62,9 @@ npm run dev:all
 npm run build
 ```
 
+### 4. Deploy to Vercel + Render
+See [DEPLOYMENT.md](DEPLOYMENT.md) for the full hosting walkthrough.
+
 ---
 
 ## 📁 Directory Structure
