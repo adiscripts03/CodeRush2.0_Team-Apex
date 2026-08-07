@@ -19,6 +19,8 @@ export { ShelterCapacityModel } from "./shelter-capacity.model.js";
 export { RoutePlanModel } from "./route-plan.model.js";
 export { PlanRecommendationModel } from "./plan-recommendation.model.js";
 export { PlannerExplanationModel } from "./planner-explanation.model.js";
+export { FailureInjectionModel } from "./failure-injection.model.js";
+
 
 
 

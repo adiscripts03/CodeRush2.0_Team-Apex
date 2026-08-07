@@ -8,19 +8,23 @@ import { ReplayControls } from "../components/ReplayControls";
 import { ResourceInventoryPanel } from "../components/ResourceInventoryPanel";
 import { SnapshotPanel } from "../components/SnapshotPanel";
 import { StatusPill } from "../components/StatusPill";
+import { SystemResiliencePanel } from "../components/SystemResiliencePanel";
 import { frontendEnv } from "../config/env";
 import type { AuditEventItem } from "../approvals/approval.types";
 import type { ChangeDetectionResponse, FloodSnapshot } from "../flood/flood.types";
 import type { ImpactAssessment } from "../impact/impact.types";
 import type { PlanRecommendation } from "../planner/planner.types";
 import type { Resource, RoutePlan, ShelterCapacity, Vehicle } from "../resources/resource.types";
+import type { FailureInjection, ResilienceHealthMetrics } from "../resilience/resilience.types";
 import { useGisLayers } from "../hooks/useGisLayers";
 import { useBackendHealth } from "../hooks/useBackendHealth";
 import { useReplayController } from "../hooks/useReplayController";
 import { approveRecommendationApi, fetchApprovals, fetchAuditTimeline, rejectRecommendationApi } from "../services/approval.service";
 import { fetchCurrentFlood, fetchFloodChange } from "../services/flood.service";
 import { fetchImpactByTimestamp, fetchLatestImpactSummary } from "../services/impact.service";
+import { clearOfflineQueue, enqueueOfflineAction, getQueuedOfflineActions, syncOfflineQueue } from "../services/offline-queue.service";
 import { fetchRecommendations, runPlannerApi } from "../services/planner.service";
+import { clearFailuresApi, fetchActiveFailures, fetchResilienceHealth, injectFailureApi } from "../services/resilience.service";
 import { fetchEvacuationRoute, fetchResources } from "../services/resource.service";
 import { formatMongoStatus } from "../services/health.service";
 
@@ -44,6 +48,16 @@ export function HomePage(): ReactElement {
   const [pendingApprovals, setPendingApprovals] = useState<PlanRecommendation[]>([]);
   const [historyApprovals, setHistoryApprovals] = useState<PlanRecommendation[]>([]);
   const [auditEvents, setAuditEvents] = useState<AuditEventItem[]>([]);
+
+  const [resilienceHealth, setResilienceHealth] = useState<ResilienceHealthMetrics | null>(null);
+  const [activeFailures, setActiveFailures] = useState<FailureInjection[]>([]);
+  const [offlineQueueCount, setOfflineQueueCount] = useState<number>(0);
+
+  const refreshResilienceState = () => {
+    fetchResilienceHealth().then((res) => setResilienceHealth(res)).catch(() => {});
+    fetchActiveFailures().then((failures) => setActiveFailures(failures)).catch(() => {});
+    setOfflineQueueCount(getQueuedOfflineActions().length);
+  };
 
   const refreshApprovalsAndAudit = () => {
     fetchApprovals()
@@ -77,6 +91,7 @@ export function HomePage(): ReactElement {
       .catch(() => {});
 
     refreshApprovalsAndAudit();
+    refreshResilienceState();
 
     if (replay.activeSnapshot?.timestamp) {
       fetchFloodChange(replay.activeSnapshot.timestamp)
@@ -105,15 +120,61 @@ export function HomePage(): ReactElement {
   };
 
   const handleApprove = (recommendationId: string) => {
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      enqueueOfflineAction("approve_recommendation", { recommendationId });
+      setOfflineQueueCount(getQueuedOfflineActions().length);
+      return;
+    }
+
     approveRecommendationApi(recommendationId)
       .then(() => refreshApprovalsAndAudit())
-      .catch(() => {});
+      .catch(() => {
+        enqueueOfflineAction("approve_recommendation", { recommendationId });
+        setOfflineQueueCount(getQueuedOfflineActions().length);
+      });
   };
 
   const handleReject = (recommendationId: string, reason: string) => {
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      enqueueOfflineAction("reject_recommendation", { recommendationId, rejectionReason: reason });
+      setOfflineQueueCount(getQueuedOfflineActions().length);
+      return;
+    }
+
     rejectRecommendationApi(recommendationId, reason)
       .then(() => refreshApprovalsAndAudit())
+      .catch(() => {
+        enqueueOfflineAction("reject_recommendation", { recommendationId, rejectionReason: reason });
+        setOfflineQueueCount(getQueuedOfflineActions().length);
+      });
+  };
+
+  const handleInjectFailure = (type: FailureInjection["failureType"]) => {
+    injectFailureApi(type)
+      .then(() => refreshResilienceState())
       .catch(() => {});
+  };
+
+  const handleClearFailures = () => {
+    clearFailuresApi()
+      .then(() => refreshResilienceState())
+      .catch(() => {});
+  };
+
+  const handleSyncOfflineQueue = () => {
+    syncOfflineQueue(async (action) => {
+      if (action.type === "approve_recommendation") {
+        await approveRecommendationApi(action.payload.recommendationId as string);
+      } else if (action.type === "reject_recommendation") {
+        await rejectRecommendationApi(
+          action.payload.recommendationId as string,
+          action.payload.rejectionReason as string
+        );
+      }
+    }).then(() => {
+      refreshApprovalsAndAudit();
+      setOfflineQueueCount(getQueuedOfflineActions().length);
+    }).catch(() => {});
   };
 
   const handleGenerateRoute = (lng: number, lat: number) => {
@@ -133,7 +194,7 @@ export function HomePage(): ReactElement {
           <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">Emergency Operations Center</p>
           <h1 className="mt-2 text-3xl font-semibold">Kerala Floods 2018 Intelligence Engine</h1>
           <p className="mt-3 max-w-3xl text-base leading-7 text-zinc-700">
-            Simulation-first disaster management system with Sentinel-2 flood extent detection, spatial change analysis, impact assessment, safe evacuation routing, agentic decision planning, human approval workflow, historical replay, and traceable infrastructure.
+            Simulation-first disaster management system with Sentinel-2 flood extent detection, spatial change analysis, impact assessment, safe evacuation routing, agentic decision planning, human approval workflow, resilience failure simulation, historical replay, and traceable infrastructure.
           </p>
         </div>
 
@@ -172,6 +233,17 @@ export function HomePage(): ReactElement {
           onSpeedChange={replay.setSpeed}
           onStepForward={replay.stepForward}
           onStepBackward={replay.stepBackward}
+        />
+
+        {/* Resilience, Failure Simulation & Offline Sync Panel */}
+        <SystemResiliencePanel
+          resilienceHealth={resilienceHealth}
+          activeFailures={activeFailures}
+          offlineQueueCount={offlineQueueCount}
+          isLoading={replay.isLoading}
+          onInjectFailure={handleInjectFailure}
+          onClearFailures={handleClearFailures}
+          onSyncOfflineQueue={handleSyncOfflineQueue}
         />
 
         {/* Human Approval Workflow & Audit Trail Panel */}

@@ -318,6 +318,32 @@ Query params:
 - `startDate`: Optional ISO 8601 datetime string.
 - `endDate`: Optional ISO 8601 datetime string.
 
+## `POST /simulation/inject-failure` (alias `/api/simulation/inject-failure`)
+
+Injects synthetic failure condition (`comms_tower_outage`, `sensor_data_loss`, `road_network_failure`, `shelter_overflow`, `network_latency`).
+
+Request body:
+
+```json
+{
+  "failureType": "comms_tower_outage",
+  "targetComponent": "telemetry_gateway"
+}
+```
+
+## `POST /simulation/clear-failures` (alias `/api/simulation/clear-failures`)
+
+Clears all active failure injections.
+
+## `GET /simulation/active-failures` (alias `/api/simulation/active-failures`)
+
+Returns list of active failure injections.
+
+## `GET /health/resilience` (alias `/api/health/resilience`)
+
+Returns system resilience health metrics, resilience index (0-100), active failure count, and degraded mode status.
+
+
 
 
 
