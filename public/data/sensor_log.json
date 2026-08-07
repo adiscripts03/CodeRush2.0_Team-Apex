@@ -1,0 +1,37 @@
+{
+  "note": "SYNTHETIC SENSOR FEED — Loosely based on Kerala reservoir capacity levels (Idukki, Kakki, Pamba) prior to peak rainfall in August 2018.",
+  "sensors": [
+    {
+      "id": "RS-01",
+      "name": "Pamba Dam Level",
+      "location": "Ranni / Pathanamthitta",
+      "capacity_percent": 98.4,
+      "discharge_rate_cumes": 1420,
+      "status": "Red Alert"
+    },
+    {
+      "id": "RS-02",
+      "name": "Kakki Reservoir Gauge",
+      "location": "Upper Kuttanad",
+      "capacity_percent": 96.2,
+      "discharge_rate_cumes": 980,
+      "status": "Red Alert"
+    },
+    {
+      "id": "RS-03",
+      "name": "Vembanad Lake Water Level Sensor",
+      "location": "Alappuzha North",
+      "capacity_percent": 112.5,
+      "discharge_rate_cumes": 2800,
+      "status": "Overflowing"
+    },
+    {
+      "id": "RS-04",
+      "name": "Meenachil River Hydro Station",
+      "location": "Kottayam Town",
+      "capacity_percent": 94.8,
+      "discharge_rate_cumes": 1150,
+      "status": "Orange Alert"
+    }
+  ]
+}

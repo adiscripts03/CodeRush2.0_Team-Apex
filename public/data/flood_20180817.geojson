@@ -1,0 +1,60 @@
+{
+  "type": "FeatureCollection",
+  "name": "flood_20180817",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "event": "Kerala Floods 2018 Peak",
+        "date": "2018-08-17",
+        "source": "Dartmouth Flood Observatory / Sentinel-1 SAR",
+        "area_ha": 50119,
+        "severity": "Extreme Critical"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [76.28, 9.32],
+            [76.30, 9.40],
+            [76.32, 9.48],
+            [76.36, 9.55],
+            [76.42, 9.62],
+            [76.52, 9.64],
+            [76.60, 9.58],
+            [76.62, 9.48],
+            [76.58, 9.38],
+            [76.52, 9.30],
+            [76.42, 9.28],
+            [76.34, 9.29],
+            [76.28, 9.32]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "event": "Kerala Floods 2018 Peak",
+        "date": "2018-08-17",
+        "source": "Dartmouth Flood Observatory / Sentinel-1 SAR",
+        "area_ha": 12400,
+        "severity": "High"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [76.22, 9.58],
+            [76.26, 9.64],
+            [76.32, 9.68],
+            [76.36, 9.64],
+            [76.30, 9.58],
+            [76.24, 9.56],
+            [76.22, 9.58]
+          ]
+        ]
+      }
+    }
+  ]
+}

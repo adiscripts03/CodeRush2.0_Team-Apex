@@ -1,0 +1,35 @@
+{
+  "event_name": "Kerala Floods, August 2018",
+  "keyframes": [
+    {
+      "timestamp": "2018-08-14T00:00:00Z",
+      "label": "14 Aug 2018 00:00 (Onset)",
+      "source": "confirmed",
+      "flooded_area_hectares": 28737,
+      "confidence": 0.9,
+      "data_gap": false,
+      "hazard_polygon_file": "flood_20180814.geojson",
+      "summary": "Initial satellite observation from Sentinel-1 SAR. Heavy rainfall initiated dam discharges."
+    },
+    {
+      "timestamp": "2018-08-15T12:00:00Z",
+      "label": "15 Aug 2018 12:00 (Data Gap)",
+      "source": "interpolated",
+      "flooded_area_hectares": 39428,
+      "confidence": 0.45,
+      "data_gap": true,
+      "hazard_polygon_file": "flood_20180814.geojson",
+      "note": "No satellite pass in this window; extent shown is last-confirmed + bounded growth estimate, not a new observation."
+    },
+    {
+      "timestamp": "2018-08-17T00:00:00Z",
+      "label": "17 Aug 2018 00:00 (Peak Flood)",
+      "source": "confirmed",
+      "flooded_area_hectares": 50119,
+      "confidence": 0.95,
+      "data_gap": false,
+      "hazard_polygon_file": "flood_20180817.geojson",
+      "summary": "Peak flood extent captured by Dartmouth Flood Observatory. Critical emergency level across Alappuzha & Kottayam."
+    }
+  ]
+}
