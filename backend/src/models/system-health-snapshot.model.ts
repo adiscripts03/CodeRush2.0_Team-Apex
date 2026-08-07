@@ -1,4 +1,4 @@
-import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import mongoose, { Schema, model, type InferSchemaType, type Model } from "mongoose";
 
 const dependencySchema = new Schema(
   {
@@ -28,5 +28,5 @@ systemHealthSnapshotSchema.index({ service: 1, observedAt: -1 });
 export type SystemHealthSnapshot = InferSchemaType<typeof systemHealthSnapshotSchema>;
 
 export const SystemHealthSnapshotModel: Model<SystemHealthSnapshot> =
-  models.SystemHealthSnapshot ??
+  (mongoose.models.SystemHealthSnapshot as any) ??
   model<SystemHealthSnapshot>("SystemHealthSnapshot", systemHealthSnapshotSchema);

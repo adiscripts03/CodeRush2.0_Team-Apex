@@ -1,4 +1,4 @@
-import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import mongoose, { Schema, model, type InferSchemaType, type Model } from "mongoose";
 
 const plannerActionOutcomeSchema = new Schema(
   {
@@ -43,4 +43,4 @@ learningReportSchema.index({ timestamp: -1 });
 export type LearningReport = InferSchemaType<typeof learningReportSchema>;
 
 export const LearningReportModel: Model<LearningReport> =
-  models.LearningReport ?? model<LearningReport>("LearningReport", learningReportSchema);
+  (mongoose.models.LearningReport as any) ?? model<LearningReport>("LearningReport", learningReportSchema);

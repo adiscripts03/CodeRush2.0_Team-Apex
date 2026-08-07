@@ -1,9 +1,7 @@
-import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, type ReactElement } from "react";
-import { frontendEnv } from "../config/env";
 import { gisLayerTypes } from "../gis/gis.types";
-import { getGisLayerStyle } from "../gis/layerStyles";
 import { fetchGisLayerFeatures } from "../services/gis.service";
 
 interface EocMapProps {
@@ -13,187 +11,164 @@ interface EocMapProps {
   evacuationRoute?: GeoJSON.FeatureCollection | null;
 }
 
-const FLOOD_SOURCE_ID = "replay-flood-extent";
-const FLOOD_FILL_LAYER_ID = "replay-flood-fill";
-const FLOOD_OUTLINE_LAYER_ID = "replay-flood-outline";
-
-const EXPANDED_SOURCE_ID = "flood-expanded-extent";
-const EXPANDED_FILL_LAYER_ID = "flood-expanded-fill";
-
-const RECEDED_SOURCE_ID = "flood-receded-extent";
-const RECEDED_FILL_LAYER_ID = "flood-receded-fill";
-
-const ROUTE_SOURCE_ID = "evacuation-route-source";
-const ROUTE_LINE_LAYER_ID = "evacuation-route-line";
-
-const emptyFeatureCollection: GeoJSON.FeatureCollection = {
-  type: "FeatureCollection",
-  features: []
-};
-
 export function EocMap({ floodExtent, expandedExtent, recededExtent, evacuationRoute }: EocMapProps): ReactElement {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const floodLayerRef = useRef<L.GeoJSON | null>(null);
+  const expandedLayerRef = useRef<L.GeoJSON | null>(null);
+  const recededLayerRef = useRef<L.GeoJSON | null>(null);
+  const routeLayerRef = useRef<L.GeoJSON | null>(null);
 
+  // Initialize Leaflet Map with OpenStreetMap tiles
   useEffect(() => {
-    if (!containerRef.current || frontendEnv.mapboxAccessToken.length === 0) {
+    if (!containerRef.current || mapRef.current) {
       return undefined;
     }
 
-    mapboxgl.accessToken = frontendEnv.mapboxAccessToken;
-
-    const map = new mapboxgl.Map({
-      container: containerRef.current,
-      style: "mapbox://styles/mapbox/light-v11",
-      center: [76.2711, 10.8505],
-      zoom: 7
+    const map = L.map(containerRef.current, {
+      center: [10.8505, 76.2711], // Kerala center [lat, lng]
+      zoom: 8
     });
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
 
     mapRef.current = map;
-    map.addControl(new mapboxgl.NavigationControl(), "top-right");
 
-    map.on("load", () => {
-      void Promise.all(
-        gisLayerTypes.map(async (layer) => {
+    // Load GIS base layers
+    void Promise.all(
+      gisLayerTypes.map(async (layer) => {
+        try {
           const data = await fetchGisLayerFeatures(layer);
-          const style = getGisLayerStyle(layer);
+          let color = "#3b82f6";
+          if (layer === "district_boundary") color = "#64748b";
+          if (layer === "road") color = "#475569";
+          if (layer === "river") color = "#0284c7";
+          if (layer === "hospital") color = "#ef4444";
+          if (layer === "shelter") color = "#10b981";
 
-          if (!map.getSource(style.sourceId)) {
-            map.addSource(style.sourceId, {
-              type: "geojson",
-              data
-            });
-          }
-
-          if (!map.getLayer(style.layer.id)) {
-            map.addLayer(style.layer);
-          }
-        })
-      );
-
-      // Add flood extent source and layers
-      map.addSource(FLOOD_SOURCE_ID, {
-        type: "geojson",
-        data: floodExtent ?? emptyFeatureCollection
-      });
-
-      map.addLayer({
-        id: FLOOD_FILL_LAYER_ID,
-        type: "fill",
-        source: FLOOD_SOURCE_ID,
-        paint: {
-          "fill-color": "#1d4ed8",
-          "fill-opacity": 0.35
+          L.geoJSON(data, {
+            style: () => ({
+              color,
+              weight: layer === "river" || layer === "road" ? 2 : 1,
+              fillColor: color,
+              fillOpacity: 0.15
+            }),
+            pointToLayer: (_feature, latlng) => {
+              return L.circleMarker(latlng, {
+                radius: 5,
+                fillColor: color,
+                color: "#ffffff",
+                weight: 1,
+                opacity: 1,
+                fillOpacity: 0.8
+              });
+            }
+          }).addTo(map);
+        } catch {
+          // ignore layer fetch error
         }
-      });
-
-      map.addLayer({
-        id: FLOOD_OUTLINE_LAYER_ID,
-        type: "line",
-        source: FLOOD_SOURCE_ID,
-        paint: {
-          "line-color": "#1e40af",
-          "line-width": 1.5,
-          "line-opacity": 0.7
-        }
-      });
-
-      // Add expanded flood extent layer (red/rose)
-      map.addSource(EXPANDED_SOURCE_ID, {
-        type: "geojson",
-        data: expandedExtent ?? emptyFeatureCollection
-      });
-
-      map.addLayer({
-        id: EXPANDED_FILL_LAYER_ID,
-        type: "fill",
-        source: EXPANDED_SOURCE_ID,
-        paint: {
-          "fill-color": "#e11d48",
-          "fill-opacity": 0.5
-        }
-      });
-
-      // Add receded flood extent layer (emerald green)
-      map.addSource(RECEDED_SOURCE_ID, {
-        type: "geojson",
-        data: recededExtent ?? emptyFeatureCollection
-      });
-
-      map.addLayer({
-        id: RECEDED_FILL_LAYER_ID,
-        type: "fill",
-        source: RECEDED_SOURCE_ID,
-        paint: {
-          "fill-color": "#059669",
-          "fill-opacity": 0.4
-        }
-      });
-
-      // Add evacuation route layer (teal line)
-      map.addSource(ROUTE_SOURCE_ID, {
-        type: "geojson",
-        data: evacuationRoute ?? emptyFeatureCollection
-      });
-
-      map.addLayer({
-        id: ROUTE_LINE_LAYER_ID,
-        type: "line",
-        source: ROUTE_SOURCE_ID,
-        layout: {
-          "line-join": "round",
-          "line-cap": "round"
-        },
-        paint: {
-          "line-color": "#0f766e",
-          "line-width": 4.5,
-          "line-opacity": 0.9,
-          "line-dasharray": [2, 1]
-        }
-      });
-    });
+      })
+    );
 
     return () => {
-      mapRef.current = null;
       map.remove();
+      mapRef.current = null;
     };
   }, []);
 
-  // Update flood extent & change & route data whenever props change
+  // Update Flood Extent Overlay
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !map.isStyleLoaded()) {
-      return;
+    if (!map) return;
+
+    if (floodLayerRef.current) {
+      map.removeLayer(floodLayerRef.current);
+      floodLayerRef.current = null;
     }
 
-    const floodSource = map.getSource(FLOOD_SOURCE_ID) as mapboxgl.GeoJSONSource | undefined;
-    if (floodSource) {
-      floodSource.setData(floodExtent ?? emptyFeatureCollection);
+    if (floodExtent && floodExtent.features.length > 0) {
+      floodLayerRef.current = L.geoJSON(floodExtent, {
+        style: {
+          color: "#1e40af",
+          weight: 2,
+          fillColor: "#1d4ed8",
+          fillOpacity: 0.4
+        }
+      }).addTo(map);
+    }
+  }, [floodExtent]);
+
+  // Update Expanded Flood Overlay (Change Detection)
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    if (expandedLayerRef.current) {
+      map.removeLayer(expandedLayerRef.current);
+      expandedLayerRef.current = null;
     }
 
-    const expandedSource = map.getSource(EXPANDED_SOURCE_ID) as mapboxgl.GeoJSONSource | undefined;
-    if (expandedSource) {
-      expandedSource.setData(expandedExtent ?? emptyFeatureCollection);
+    if (expandedExtent && expandedExtent.features.length > 0) {
+      expandedLayerRef.current = L.geoJSON(expandedExtent, {
+        style: {
+          color: "#b91c1c",
+          weight: 2,
+          fillColor: "#dc2626",
+          fillOpacity: 0.45
+        }
+      }).addTo(map);
+    }
+  }, [expandedExtent]);
+
+  // Update Receded Flood Overlay (Change Detection)
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    if (recededLayerRef.current) {
+      map.removeLayer(recededLayerRef.current);
+      recededLayerRef.current = null;
     }
 
-    const recededSource = map.getSource(RECEDED_SOURCE_ID) as mapboxgl.GeoJSONSource | undefined;
-    if (recededSource) {
-      recededSource.setData(recededExtent ?? emptyFeatureCollection);
+    if (recededExtent && recededExtent.features.length > 0) {
+      recededLayerRef.current = L.geoJSON(recededExtent, {
+        style: {
+          color: "#15803d",
+          weight: 2,
+          fillColor: "#16a34a",
+          fillOpacity: 0.45
+        }
+      }).addTo(map);
+    }
+  }, [recededExtent]);
+
+  // Update Evacuation Route Overlay
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    if (routeLayerRef.current) {
+      map.removeLayer(routeLayerRef.current);
+      routeLayerRef.current = null;
     }
 
-    const routeSource = map.getSource(ROUTE_SOURCE_ID) as mapboxgl.GeoJSONSource | undefined;
-    if (routeSource) {
-      routeSource.setData(evacuationRoute ?? emptyFeatureCollection);
+    if (evacuationRoute && evacuationRoute.features.length > 0) {
+      routeLayerRef.current = L.geoJSON(evacuationRoute, {
+        style: {
+          color: "#059669",
+          weight: 4,
+          dashArray: "6, 8"
+        }
+      }).addTo(map);
     }
-  }, [floodExtent, expandedExtent, recededExtent, evacuationRoute]);
+  }, [evacuationRoute]);
 
-  if (frontendEnv.mapboxAccessToken.length === 0) {
-    return (
-      <div className="flex h-[520px] items-center justify-center rounded border border-amber-200 bg-amber-50 text-sm text-amber-900">
-        Mapbox token is required to render GIS layers.
-      </div>
-    );
-  }
-
-  return <div ref={containerRef} className="h-[520px] w-full rounded border border-zinc-200" />;
+  return (
+    <section className="relative h-[32rem] w-full overflow-hidden rounded border border-zinc-200 bg-zinc-100 shadow-sm">
+      <div ref={containerRef} className="h-full w-full" />
+    </section>
+  );
 }

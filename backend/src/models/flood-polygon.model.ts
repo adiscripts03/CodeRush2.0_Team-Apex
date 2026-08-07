@@ -1,4 +1,4 @@
-import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import mongoose, { Schema, model, type InferSchemaType, type Model } from "mongoose";
 import { timestamps } from "./model-options.js";
 
 const floodPolygonSchema = new Schema(
@@ -34,4 +34,4 @@ floodPolygonSchema.index({ snapshotId: 1 });
 export type FloodPolygon = InferSchemaType<typeof floodPolygonSchema>;
 
 export const FloodPolygonModel: Model<FloodPolygon> =
-  models.FloodPolygon ?? model<FloodPolygon>("FloodPolygon", floodPolygonSchema);
+  (mongoose.models.FloodPolygon as any) ?? model<FloodPolygon>("FloodPolygon", floodPolygonSchema);

@@ -1,4 +1,4 @@
-import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import mongoose, { Schema, model, type InferSchemaType, type Model } from "mongoose";
 import { timestamps } from "./model-options.js";
 
 const decisionRecordSchema = new Schema(
@@ -45,4 +45,4 @@ decisionRecordSchema.index({ hazardType: 1, loopStage: 1, createdAt: -1 });
 export type DecisionRecord = InferSchemaType<typeof decisionRecordSchema>;
 
 export const DecisionRecordModel: Model<DecisionRecord> =
-  models.DecisionRecord ?? model<DecisionRecord>("DecisionRecord", decisionRecordSchema);
+  (mongoose.models.DecisionRecord as any) ?? model<DecisionRecord>("DecisionRecord", decisionRecordSchema);

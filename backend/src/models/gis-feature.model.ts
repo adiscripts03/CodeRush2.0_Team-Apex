@@ -1,4 +1,4 @@
-import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import mongoose, { Schema, model, type InferSchemaType, type Model } from "mongoose";
 import { gisLayerTypes } from "../gis/gis.types.js";
 import { timestamps } from "./model-options.js";
 
@@ -37,4 +37,4 @@ gisFeatureSchema.index({ "source.checksum": 1 });
 export type GisFeature = InferSchemaType<typeof gisFeatureSchema>;
 
 export const GisFeatureModel: Model<GisFeature> =
-  models.GisFeature ?? model<GisFeature>("GisFeature", gisFeatureSchema);
+  (mongoose.models.GisFeature as any) ?? model<GisFeature>("GisFeature", gisFeatureSchema);

@@ -1,4 +1,4 @@
-import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import mongoose, { Schema, model, type InferSchemaType, type Model } from "mongoose";
 import { timestamps } from "./model-options.js";
 
 const humanApprovalSchema = new Schema(
@@ -28,4 +28,4 @@ humanApprovalSchema.index({ status: 1, createdAt: -1 });
 export type HumanApproval = InferSchemaType<typeof humanApprovalSchema>;
 
 export const HumanApprovalModel: Model<HumanApproval> =
-  models.HumanApproval ?? model<HumanApproval>("HumanApproval", humanApprovalSchema);
+  (mongoose.models.HumanApproval as any) ?? model<HumanApproval>("HumanApproval", humanApprovalSchema);

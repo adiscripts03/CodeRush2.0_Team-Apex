@@ -1,4 +1,4 @@
-import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import mongoose, { Schema, model, type InferSchemaType, type Model } from "mongoose";
 import { timestamps } from "./model-options.js";
 
 const pointLocationSchema = new Schema(
@@ -39,4 +39,4 @@ routePlanSchema.index({ path: "2dsphere" });
 export type RoutePlan = InferSchemaType<typeof routePlanSchema>;
 
 export const RoutePlanModel: Model<RoutePlan> =
-  models.RoutePlan ?? model<RoutePlan>("RoutePlan", routePlanSchema);
+  (mongoose.models.RoutePlan as any) ?? model<RoutePlan>("RoutePlan", routePlanSchema);

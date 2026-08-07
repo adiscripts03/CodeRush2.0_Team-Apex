@@ -1,4 +1,4 @@
-import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import mongoose, { Schema, model, type InferSchemaType, type Model } from "mongoose";
 import { timestamps } from "./model-options.js";
 
 const resourceSchema = new Schema(
@@ -35,4 +35,4 @@ resourceSchema.index({ type: 1, status: 1 });
 export type Resource = InferSchemaType<typeof resourceSchema>;
 
 export const ResourceModel: Model<Resource> =
-  models.Resource ?? model<Resource>("Resource", resourceSchema);
+  (mongoose.models.Resource as any) ?? model<Resource>("Resource", resourceSchema);

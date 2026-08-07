@@ -1,4 +1,4 @@
-import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import mongoose, { Schema, model, type InferSchemaType, type Model } from "mongoose";
 import { timestamps } from "./model-options.js";
 
 const vehicleSchema = new Schema(
@@ -34,4 +34,4 @@ vehicleSchema.index({ type: 1, status: 1 });
 export type Vehicle = InferSchemaType<typeof vehicleSchema>;
 
 export const VehicleModel: Model<Vehicle> =
-  models.Vehicle ?? model<Vehicle>("Vehicle", vehicleSchema);
+  (mongoose.models.Vehicle as any) ?? model<Vehicle>("Vehicle", vehicleSchema);

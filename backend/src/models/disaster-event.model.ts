@@ -1,4 +1,4 @@
-import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import mongoose, { Schema, model, type InferSchemaType, type Model } from "mongoose";
 import { timestamps } from "./model-options.js";
 
 const disasterEventSchema = new Schema(
@@ -34,4 +34,4 @@ disasterEventSchema.index({ hazardType: 1, status: 1 });
 export type DisasterEvent = InferSchemaType<typeof disasterEventSchema>;
 
 export const DisasterEventModel: Model<DisasterEvent> =
-  models.DisasterEvent ?? model<DisasterEvent>("DisasterEvent", disasterEventSchema);
+  (mongoose.models.DisasterEvent as any) ?? model<DisasterEvent>("DisasterEvent", disasterEventSchema);

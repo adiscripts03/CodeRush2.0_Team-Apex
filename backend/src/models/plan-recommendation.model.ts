@@ -1,4 +1,4 @@
-import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import mongoose, { Schema, model, type InferSchemaType, type Model } from "mongoose";
 import { timestamps } from "./model-options.js";
 
 const alternativeSchema = new Schema(
@@ -65,4 +65,4 @@ planRecommendationSchema.index({ actionType: 1, targetId: 1 });
 export type PlanRecommendation = InferSchemaType<typeof planRecommendationSchema>;
 
 export const PlanRecommendationModel: Model<PlanRecommendation> =
-  models.PlanRecommendation ?? model<PlanRecommendation>("PlanRecommendation", planRecommendationSchema);
+  (mongoose.models.PlanRecommendation as any) ?? model<PlanRecommendation>("PlanRecommendation", planRecommendationSchema);

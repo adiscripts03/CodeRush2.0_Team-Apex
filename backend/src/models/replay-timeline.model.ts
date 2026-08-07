@@ -1,4 +1,4 @@
-import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import mongoose, { Schema, model, type InferSchemaType, type Model } from "mongoose";
 import { timestamps } from "./model-options.js";
 
 const replayTimelineSchema = new Schema(
@@ -32,4 +32,4 @@ replayTimelineSchema.index({ hazardType: 1, startsAt: 1 });
 export type ReplayTimeline = InferSchemaType<typeof replayTimelineSchema>;
 
 export const ReplayTimelineModel: Model<ReplayTimeline> =
-  models.ReplayTimeline ?? model<ReplayTimeline>("ReplayTimeline", replayTimelineSchema);
+  (mongoose.models.ReplayTimeline as any) ?? model<ReplayTimeline>("ReplayTimeline", replayTimelineSchema);

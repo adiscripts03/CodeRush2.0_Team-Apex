@@ -1,4 +1,4 @@
-import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import mongoose, { Schema, model, type InferSchemaType, type Model } from "mongoose";
 
 const failureInjectionSchema = new Schema(
   {
@@ -34,4 +34,4 @@ failureInjectionSchema.index({ active: 1, failureType: 1 });
 export type FailureInjection = InferSchemaType<typeof failureInjectionSchema>;
 
 export const FailureInjectionModel: Model<FailureInjection> =
-  models.FailureInjection ?? model<FailureInjection>("FailureInjection", failureInjectionSchema);
+  (mongoose.models.FailureInjection as any) ?? model<FailureInjection>("FailureInjection", failureInjectionSchema);

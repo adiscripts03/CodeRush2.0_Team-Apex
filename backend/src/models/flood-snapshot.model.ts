@@ -1,4 +1,4 @@
-import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import mongoose, { Schema, model, type InferSchemaType, type Model } from "mongoose";
 import { timestamps } from "./model-options.js";
 
 const floodSnapshotSchema = new Schema(
@@ -26,4 +26,4 @@ floodSnapshotSchema.index({ timestamp: -1 });
 export type FloodSnapshot = InferSchemaType<typeof floodSnapshotSchema>;
 
 export const FloodSnapshotModel: Model<FloodSnapshot> =
-  models.FloodSnapshot ?? model<FloodSnapshot>("FloodSnapshot", floodSnapshotSchema);
+  (mongoose.models.FloodSnapshot as any) ?? model<FloodSnapshot>("FloodSnapshot", floodSnapshotSchema);

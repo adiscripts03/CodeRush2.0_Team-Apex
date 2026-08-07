@@ -34,6 +34,8 @@ export interface RecommendationDraft {
 export function generateRecommendations(data: PlannerInputData): RecommendationDraft[] {
   const recommendations: RecommendationDraft[] = [];
   const seenTargets = new Set<string>();
+  const ts = data.timestamp.getTime();
+  const rand = Math.random().toString(36).slice(2, 7);
 
   const addRecommendation = (rec: RecommendationDraft) => {
     const key = `${rec.actionType}:${rec.targetId || rec.targetName}`;
@@ -52,7 +54,7 @@ export function generateRecommendations(data: PlannerInputData): RecommendationD
     };
 
     addRecommendation({
-      recommendationId: `REC_SHELTER_${data.timestamp.getTime()}`,
+      recommendationId: `REC_SHELTER_${ts}_${rand}`,
       timestamp: data.timestamp,
       actionType: "open_shelter",
       targetName: targetShelter.name,
@@ -77,7 +79,7 @@ export function generateRecommendations(data: PlannerInputData): RecommendationD
   if (data.floodAreaKm2 > 10.0 && data.availableBoats > 0) {
     const boatsToDeploy = Math.min(data.availableBoats, Math.ceil(data.floodAreaKm2 / 5));
     addRecommendation({
-      recommendationId: `REC_BOATS_${data.timestamp.getTime()}`,
+      recommendationId: `REC_BOATS_${ts}_${rand}`,
       timestamp: data.timestamp,
       actionType: "deploy_rescue_boats",
       targetName: "NDRF Motorised Inflatable Boat Squad",
@@ -102,7 +104,7 @@ export function generateRecommendations(data: PlannerInputData): RecommendationD
   if (data.blockedRoadCount > 0) {
     const targetRoad = data.blockedRoads?.[0] || { facilityId: "ROAD_NH66_ALUVA", facilityName: "NH-66 Aluva-Ernakulam Stretch" };
     addRecommendation({
-      recommendationId: `REC_ROAD_${data.timestamp.getTime()}`,
+      recommendationId: `REC_ROAD_${ts}_${rand}`,
       timestamp: data.timestamp,
       actionType: "close_road",
       targetName: targetRoad.facilityName,
@@ -126,7 +128,7 @@ export function generateRecommendations(data: PlannerInputData): RecommendationD
   // 4. Send Medical Teams if hospitals face operational risk
   if (data.affectedHospitalCount > 0) {
     addRecommendation({
-      recommendationId: `REC_MEDICAL_${data.timestamp.getTime()}`,
+      recommendationId: `REC_MEDICAL_${ts}_${rand}`,
       timestamp: data.timestamp,
       actionType: "send_medical_team",
       targetName: "Aluva District Hospital Medical Response Team",
@@ -149,7 +151,7 @@ export function generateRecommendations(data: PlannerInputData): RecommendationD
   // 5. Prioritize District based on severity
   const districtName = data.districtName || "Ernakulam";
   addRecommendation({
-    recommendationId: `REC_DISTRICT_${data.timestamp.getTime()}`,
+    recommendationId: `REC_DISTRICT_${ts}_${rand}`,
     timestamp: data.timestamp,
     actionType: "prioritize_district",
     targetName: districtName,
@@ -170,7 +172,7 @@ export function generateRecommendations(data: PlannerInputData): RecommendationD
 
   // 6. Schedule Next Review
   addRecommendation({
-    recommendationId: `REC_REVIEW_${data.timestamp.getTime()}`,
+    recommendationId: `REC_REVIEW_${ts}_${rand}`,
     timestamp: data.timestamp,
     actionType: "schedule_review",
     targetName: "EOC Executive Review (6-Hour Timestep)",

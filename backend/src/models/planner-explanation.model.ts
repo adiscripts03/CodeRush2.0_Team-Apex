@@ -1,4 +1,4 @@
-import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import mongoose, { Schema, model, type InferSchemaType, type Model } from "mongoose";
 import { timestamps } from "./model-options.js";
 
 const plannerExplanationSchema = new Schema(
@@ -25,4 +25,4 @@ plannerExplanationSchema.index({ timestamp: -1 });
 export type PlannerExplanation = InferSchemaType<typeof plannerExplanationSchema>;
 
 export const PlannerExplanationModel: Model<PlannerExplanation> =
-  models.PlannerExplanation ?? model<PlannerExplanation>("PlannerExplanation", plannerExplanationSchema);
+  (mongoose.models.PlannerExplanation as any) ?? model<PlannerExplanation>("PlannerExplanation", plannerExplanationSchema);

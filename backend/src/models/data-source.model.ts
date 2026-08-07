@@ -1,4 +1,4 @@
-import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import mongoose, { Schema, model, type InferSchemaType, type Model } from "mongoose";
 import { timestamps } from "./model-options.js";
 
 const dataSourceSchema = new Schema(
@@ -27,4 +27,5 @@ dataSourceSchema.index({ sourceType: 1 });
 export type DataSource = InferSchemaType<typeof dataSourceSchema>;
 
 export const DataSourceModel: Model<DataSource> =
-  models.DataSource ?? model<DataSource>("DataSource", dataSourceSchema);
+  (mongoose.models.DataSource as any) ?? model<DataSource>("DataSource", dataSourceSchema);
+

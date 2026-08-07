@@ -1,4 +1,4 @@
-import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import mongoose, { Schema, model, type InferSchemaType, type Model } from "mongoose";
 
 const evaluationResultSchema = new Schema(
   {
@@ -27,4 +27,4 @@ evaluationResultSchema.index({ timestamp: -1 });
 export type EvaluationResult = InferSchemaType<typeof evaluationResultSchema>;
 
 export const EvaluationResultModel: Model<EvaluationResult> =
-  models.EvaluationResult ?? model<EvaluationResult>("EvaluationResult", evaluationResultSchema);
+  (mongoose.models.EvaluationResult as any) ?? model<EvaluationResult>("EvaluationResult", evaluationResultSchema);

@@ -1,4 +1,4 @@
-import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import mongoose, { Schema, model, type InferSchemaType, type Model } from "mongoose";
 import { timestamps } from "./model-options.js";
 
 const replaySnapshotSchema = new Schema(
@@ -26,4 +26,4 @@ replaySnapshotSchema.index({ timelineId: 1, sequence: 1 }, { unique: true });
 export type ReplaySnapshot = InferSchemaType<typeof replaySnapshotSchema>;
 
 export const ReplaySnapshotModel: Model<ReplaySnapshot> =
-  models.ReplaySnapshot ?? model<ReplaySnapshot>("ReplaySnapshot", replaySnapshotSchema);
+  (mongoose.models.ReplaySnapshot as any) ?? model<ReplaySnapshot>("ReplaySnapshot", replaySnapshotSchema);

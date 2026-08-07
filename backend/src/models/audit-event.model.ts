@@ -1,4 +1,4 @@
-import { Schema, model, models, type Model, type InferSchemaType } from "mongoose";
+import mongoose, { Schema, model, type Model, type InferSchemaType } from "mongoose";
 
 const actorTypes = ["system", "human", "sensor", "planner", "simulation"] as const;
 const severities = ["debug", "info", "warn", "error", "critical"] as const;
@@ -28,4 +28,5 @@ auditEventSchema.index({ hazardType: 1, createdAt: -1 });
 export type AuditEvent = InferSchemaType<typeof auditEventSchema>;
 
 export const AuditEventModel: Model<AuditEvent> =
-  models.AuditEvent ?? model<AuditEvent>("AuditEvent", auditEventSchema);
+  (mongoose.models.AuditEvent as any) ?? model<AuditEvent>("AuditEvent", auditEventSchema);
+

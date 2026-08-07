@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { clearFailures, getActiveFailures, injectFailure } from "../resilience/failure-simulator.engine.js";
+import { runFullAutoSimulation } from "../resilience/auto-simulation.engine.js";
 import { injectFailureBodySchema } from "../validation/simulation.validation.js";
 import { validate } from "../validation/validate.js";
 
@@ -28,6 +29,15 @@ simulationRouter.get("/active-failures", async (_req, res, next) => {
   try {
     const failures = await getActiveFailures();
     res.json({ failures, count: failures.length });
+  } catch (error) {
+    next(error);
+  }
+});
+
+simulationRouter.post("/auto-run", async (_req, res, next) => {
+  try {
+    const result = await runFullAutoSimulation();
+    res.json(result);
   } catch (error) {
     next(error);
   }

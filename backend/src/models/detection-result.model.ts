@@ -1,4 +1,4 @@
-import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import mongoose, { Schema, model, type InferSchemaType, type Model } from "mongoose";
 import { timestamps } from "./model-options.js";
 
 const detectionResultSchema = new Schema(
@@ -25,4 +25,4 @@ detectionResultSchema.index({ timestamp: -1 });
 export type DetectionResult = InferSchemaType<typeof detectionResultSchema>;
 
 export const DetectionResultModel: Model<DetectionResult> =
-  models.DetectionResult ?? model<DetectionResult>("DetectionResult", detectionResultSchema);
+  (mongoose.models.DetectionResult as any) ?? model<DetectionResult>("DetectionResult", detectionResultSchema);

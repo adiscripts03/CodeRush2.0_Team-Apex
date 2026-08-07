@@ -1,4 +1,4 @@
-import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import mongoose, { Schema, model, type InferSchemaType, type Model } from "mongoose";
 import { timestamps } from "./model-options.js";
 
 const shelterCapacitySchema = new Schema(
@@ -36,4 +36,4 @@ shelterCapacitySchema.index({ status: 1, availableCapacity: -1 });
 export type ShelterCapacity = InferSchemaType<typeof shelterCapacitySchema>;
 
 export const ShelterCapacityModel: Model<ShelterCapacity> =
-  models.ShelterCapacity ?? model<ShelterCapacity>("ShelterCapacity", shelterCapacitySchema);
+  (mongoose.models.ShelterCapacity as any) ?? model<ShelterCapacity>("ShelterCapacity", shelterCapacitySchema);

@@ -1,4 +1,4 @@
-import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import mongoose, { Schema, model, type InferSchemaType, type Model } from "mongoose";
 import { timestamps } from "./model-options.js";
 
 const affectedFacilitySchema = new Schema(
@@ -33,4 +33,5 @@ affectedFacilitySchema.index({ assessmentId: 1, facilityType: 1 });
 export type AffectedFacility = InferSchemaType<typeof affectedFacilitySchema>;
 
 export const AffectedFacilityModel: Model<AffectedFacility> =
-  models.AffectedFacility ?? model<AffectedFacility>("AffectedFacility", affectedFacilitySchema);
+  (mongoose.models.AffectedFacility as any) ?? model<AffectedFacility>("AffectedFacility", affectedFacilitySchema);
+
