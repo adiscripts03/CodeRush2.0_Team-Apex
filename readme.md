@@ -4,6 +4,8 @@ Simulation-first Emergency Operations Center foundation for replayable Kerala Fl
 
 Milestone 1 creates the project foundation only: configuration, logging, MongoDB connection handling, audit/event schemas, health checks, frontend shell, tests, and setup documentation.
 
+Milestone 2 adds the GIS layer: GeoJSON imports, MongoDB `2dsphere` storage, geospatial APIs, and Mapbox rendering for districts, roads, rivers, hospitals, shelters, and population.
+
 ## Architecture
 
 The system follows the core decision loop:
@@ -28,6 +30,12 @@ cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 npm run typecheck
 npm test
+```
+
+Import local GIS fixtures after configuring backend MongoDB:
+
+```bash
+npm run import:gis:fixtures --workspace backend
 ```
 
 Development servers:

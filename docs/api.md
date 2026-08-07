@@ -39,3 +39,40 @@ Response:
   ]
 }
 ```
+
+## `GET /api/gis/layers`
+
+Returns imported GIS layer counts.
+
+## `GET /api/gis/layers/:layer/features`
+
+Returns a GeoJSON FeatureCollection for a single layer.
+
+Supported layers:
+
+- `district_boundary`
+- `road`
+- `river`
+- `hospital`
+- `shelter`
+- `population`
+
+## `GET /api/gis/nearby`
+
+Finds features near a point using MongoDB geospatial indexes.
+
+Query params:
+
+- `lng`
+- `lat`
+- `radiusMeters`
+- `layers`, optional comma-separated layer list
+
+## `GET /api/gis/intersect`
+
+Finds features intersecting a bounding box.
+
+Query params:
+
+- `bbox`: `minLng,minLat,maxLng,maxLat`
+- `layers`, optional comma-separated layer list

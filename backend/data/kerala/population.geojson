@@ -1,0 +1,19 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "ernakulam-population-2011-sample",
+      "properties": {
+        "name": "Ernakulam population sample",
+        "district": "Ernakulam",
+        "population": 3282388,
+        "sourceYear": 2011
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [76.30, 10.00]
+      }
+    }
+  ]
+}

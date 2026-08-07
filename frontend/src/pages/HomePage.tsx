@@ -1,11 +1,14 @@
 import type { ReactElement } from "react";
+import { EocMap } from "../components/EocMap";
 import { StatusPill } from "../components/StatusPill";
 import { frontendEnv } from "../config/env";
+import { useGisLayers } from "../hooks/useGisLayers";
 import { useBackendHealth } from "../hooks/useBackendHealth";
 import { formatMongoStatus } from "../services/health.service";
 
 export function HomePage(): ReactElement {
   const { health, isLoading, error } = useBackendHealth();
+  const gis = useGisLayers();
   const hasMapboxToken = frontendEnv.mapboxAccessToken.length > 0;
 
   return (
@@ -37,6 +40,23 @@ export function HomePage(): ReactElement {
             </div>
           </article>
         </div>
+
+        <section className="grid gap-4 lg:grid-cols-[1fr_18rem]">
+          <EocMap />
+          <aside className="rounded border border-zinc-200 bg-white p-5 shadow-sm">
+            <h2 className="text-base font-semibold">GIS Layers</h2>
+            <div className="mt-4 flex flex-col gap-3">
+              {gis.isLoading ? <StatusPill label="loading layers" tone="neutral" /> : null}
+              {gis.error ? <StatusPill label="layers unavailable" tone="warn" /> : null}
+              {gis.layers.map((layer) => (
+                <div key={layer.layer} className="flex items-center justify-between border-b border-zinc-100 pb-2 text-sm last:border-b-0">
+                  <span className="font-medium text-zinc-800">{layer.layer.replace("_", " ")}</span>
+                  <span className="text-zinc-500">{layer.count}</span>
+                </div>
+              ))}
+            </div>
+          </aside>
+        </section>
       </section>
     </main>
   );

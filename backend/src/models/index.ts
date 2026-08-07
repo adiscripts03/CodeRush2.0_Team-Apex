@@ -2,5 +2,6 @@ export { AuditEventModel } from "./audit-event.model.js";
 export { DataSourceModel } from "./data-source.model.js";
 export { DecisionRecordModel } from "./decision-record.model.js";
 export { DisasterEventModel } from "./disaster-event.model.js";
+export { GisFeatureModel } from "./gis-feature.model.js";
 export { HumanApprovalModel } from "./human-approval.model.js";
 export { SystemHealthSnapshotModel } from "./system-health-snapshot.model.js";

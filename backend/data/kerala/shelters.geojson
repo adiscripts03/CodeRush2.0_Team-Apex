@@ -1,0 +1,17 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "relief-camp-kakkanad-sample",
+      "properties": {
+        "name": "Kakkanad relief shelter sample",
+        "capacity": 500
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [76.35, 10.02]
+      }
+    }
+  ]
+}

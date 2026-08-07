@@ -1,0 +1,17 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "nh-544-sample",
+      "properties": {
+        "name": "NH 544 sample",
+        "roadClass": "national_highway"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[76.25, 10.02], [76.31, 10.05], [76.39, 10.08]]
+      }
+    }
+  ]
+}

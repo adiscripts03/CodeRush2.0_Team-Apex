@@ -1,5 +1,5 @@
-import type { ZodSchema } from "zod";
+import type { z, ZodTypeAny } from "zod";
 
-export function validate<T>(schema: ZodSchema<T>, value: unknown): T {
-  return schema.parse(value);
+export function validate<TSchema extends ZodTypeAny>(schema: TSchema, value: unknown): z.output<TSchema> {
+  return schema.parse(value) as z.output<TSchema>;
 }

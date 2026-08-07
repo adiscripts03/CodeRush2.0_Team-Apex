@@ -1,0 +1,18 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "ernakulam-general-hospital-sample",
+      "properties": {
+        "name": "Ernakulam General Hospital sample",
+        "amenity": "hospital",
+        "beds": 250
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [76.281, 9.982]
+      }
+    }
+  ]
+}

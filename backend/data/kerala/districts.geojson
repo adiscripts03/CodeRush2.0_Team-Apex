@@ -1,0 +1,17 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "ernakulam-boundary",
+      "properties": {
+        "name": "Ernakulam",
+        "district": "Ernakulam"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[76.15, 9.75], [76.55, 9.75], [76.55, 10.2], [76.15, 10.2], [76.15, 9.75]]]
+      }
+    }
+  ]
+}
