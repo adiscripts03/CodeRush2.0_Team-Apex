@@ -1,0 +1,16 @@
+{
+  "note": "SYNTHETIC SHELTER CAPACITIES — Sourced fallback capacities for OpenStreetMap school/shelter points and polygons in Kerala emergency response dataset.",
+  "defaults": {
+    "school": { "capacity_total": 250, "capacity_available": 180 },
+    "community_centre": { "capacity_total": 150, "capacity_available": 110 },
+    "college": { "capacity_total": 500, "capacity_available": 380 },
+    "hospital": { "capacity_total": 120, "capacity_available": 35 }
+  },
+  "overrides": {
+    "way/36489482": { "capacity_total": 280, "capacity_available": 210, "facilities": ["Water", "Medical Kit", "Generator"] },
+    "way/53831911": { "capacity_total": 200, "capacity_available": 140, "facilities": ["Water", "Kitchen"] },
+    "way/54360249": { "capacity_total": 220, "capacity_available": 160, "facilities": ["Water", "Power Backup"] },
+    "way/92289858": { "capacity_total": 350, "capacity_available": 270, "facilities": ["Water", "Medical Kit", "Helipad Access"] },
+    "way/98118668": { "capacity_total": 300, "capacity_available": 220, "facilities": ["Water", "Community Kitchen"] }
+  }
+}
