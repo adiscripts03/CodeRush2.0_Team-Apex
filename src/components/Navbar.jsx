@@ -13,6 +13,7 @@ export default function Navbar() {
   const navItems = [
     { path: '/', label: 'Command Dashboard', icon: LayoutDashboard },
     { path: '/map', label: 'Command Map', icon: MapPin },
+    { path: '/sensor-map', label: 'Hydro Feed', icon: Activity },
     {
       path: '/planner',
       label: 'Response Planner',
@@ -43,7 +44,7 @@ export default function Navbar() {
                 Disaster Command <span className="text-cyan-600 font-mono">v1.0</span>
               </h1>
               <span className="bg-amber-100 border border-amber-300 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                Kerala 2018 Replay
+                Historical Replay
               </span>
             </div>
             <p className="text-[11px] text-slate-500">Historical Simulation & Decision Support</p>

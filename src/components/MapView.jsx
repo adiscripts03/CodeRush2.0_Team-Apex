@@ -22,25 +22,37 @@ const shelterIcon = L.divIcon({
   iconAnchor: [13, 13],
 });
 
+function MapResizer() {
+  const map = useMap();
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [map]);
+  return null;
+}
+
 export default function MapView({
   geoData,
   layerVisibility,
   activeRoutes = [],
 }) {
-  const defaultCenter = [9.4981, 76.3388]; // Alappuzha / Kuttanad region
+  const defaultCenter = [9.4981, 76.3388]; // Regional command coordinates
   const defaultZoom = 11;
 
   const hospitalFeatures = geoData?.hospitals?.features?.slice(0, 150) || [];
   const shelterFeatures = geoData?.shelters?.features?.slice(0, 200) || [];
 
   return (
-    <div className="w-full h-full relative rounded-xl overflow-hidden border border-slate-200 shadow-md bg-slate-100">
+    <div className="w-full h-full relative rounded-xl overflow-hidden border border-slate-200 shadow-md bg-slate-100 min-h-[300px]">
       <MapContainer
         center={defaultCenter}
         zoom={defaultZoom}
         scrollWheelZoom={true}
         className="w-full h-full z-0"
       >
+        <MapResizer />
         {/* CartoDB Voyager Light Tiles */}
         <TileLayer
           attribution='&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap'

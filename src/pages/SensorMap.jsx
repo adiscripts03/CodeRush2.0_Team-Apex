@@ -1,11 +1,23 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { useApp } from '../state/AppContext';
 import { ArrowLeft, Activity, MapPin } from 'lucide-react';
 
 import 'leaflet/dist/leaflet.css';
+
+// Component to handle Leaflet resize invalidation
+function MapResizer() {
+  const map = useMap();
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [map]);
+  return null;
+}
 
 // Component to auto-fit map bounds
 function AutoFitBounds({ markers }) {
@@ -16,7 +28,7 @@ function AutoFitBounds({ markers }) {
       const validMarkers = markers.filter(m => m.lat && m.lng);
       if (validMarkers.length > 0) {
         const bounds = L.latLngBounds(validMarkers.map(m => [m.lat, m.lng]));
-        map.fitBounds(bounds, { padding: [50, 50] });
+        map.fitBounds(bounds, { padding: [80, 80] });
       }
     }
   }, [map, markers]);
@@ -32,7 +44,7 @@ const getStatusColor = (status) => {
     case 'orange alert':
       return { bg: 'bg-orange-500', text: 'text-orange-700', border: 'border-orange-600', isPulsing: false };
     case 'red alert':
-      return { bg: 'bg-red-500', text: 'text-red-700', border: 'border-red-600', isPulsing: false };
+      return { bg: 'bg-red-500', text: 'text-red-700', border: 'border-red-600', isPulsing: true };
     case 'overflowing':
       return { bg: 'bg-rose-700', text: 'text-rose-900', border: 'border-rose-800', isPulsing: true };
     default:
@@ -89,7 +101,7 @@ export default function SensorMap() {
               <h1 className="text-lg font-extrabold text-slate-900">Hydro Sensor Network</h1>
             </div>
             <p className="text-xs text-slate-600">
-              Live geographic visualization of dam levels, reservoir gauges, and river stations across the affected region.
+              Full-screen live geographic visualization of dam levels, reservoir gauges, and river stations with live condition indicators.
             </p>
           </div>
         </div>
@@ -128,6 +140,7 @@ export default function SensorMap() {
           style={{ height: '100%', width: '100%' }}
           zoomControl={false}
         >
+          <MapResizer />
           <TileLayer
             url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
@@ -140,6 +153,26 @@ export default function SensorMap() {
                 position={[sensor.lat, sensor.lng]}
                 icon={createCustomIcon(sensor.status)}
               >
+                <Tooltip 
+                  permanent 
+                  direction="top" 
+                  offset={[0, -14]}
+                  className="sensor-label-tooltip bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-200 shadow-md text-xs font-sans pointer-events-auto"
+                >
+                  <div className="flex flex-col gap-0.5">
+                    <span className="font-extrabold text-slate-900 text-xs tracking-tight">{sensor.name}</span>
+                    <div className="flex items-center gap-1.5 text-[11px]">
+                      <span className={`font-mono font-bold ${sensor.capacity_percent > 100 ? 'text-rose-600' : 'text-amber-600'}`}>
+                        {sensor.capacity_percent}%
+                      </span>
+                      <span className="text-slate-400">•</span>
+                      <span className={`font-bold ${getStatusColor(sensor.status).text}`}>
+                        {sensor.status}
+                      </span>
+                    </div>
+                  </div>
+                </Tooltip>
+
                 <Popup className="custom-popup">
                   <div className="p-1 min-w-[200px]">
                     <div className="flex items-center gap-1.5 mb-1">

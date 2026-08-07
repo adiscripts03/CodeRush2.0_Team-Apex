@@ -7,7 +7,7 @@ const INITIAL_LOGS = [
   {
     id: 'log-init-1',
     type: 'observation',
-    message: 'Kerala Floods historical replay session initialized. Region: Alappuzha & Kottayam.',
+    message: 'Historical flood emergency replay session initialized. Region: Command Sector Alpha.',
     timestamp: new Date().toISOString(),
   },
   {

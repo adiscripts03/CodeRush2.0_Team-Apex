@@ -1,6 +1,6 @@
 # Disaster Management Command System — First Working Prototype
 
-> **DISCLAIMER & PROVENANCE NOTICE**: This system is a **historical simulation and replay tool** based on the extreme Kerala Floods event of August 2018 (Alappuzha and Kottayam districts). It is **NOT** a live real-time monitoring tool.
+> **DISCLAIMER & PROVENANCE NOTICE**: This system is a **historical simulation and replay tool** based on extreme flood events of August 2018. It is **NOT** a live real-time monitoring tool.
 
 ---
 
