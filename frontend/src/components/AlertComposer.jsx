@@ -10,7 +10,7 @@ const DEMO_RECIPIENTS = [
 ];
 
 export default function AlertComposer() {
-  const { recordSentAlert } = useApp();
+  const { recordSentAlert, isOffline, setOfflineQueue } = useApp();
 
   const [recipientEmail, setRecipientEmail] = useState(DEMO_RECIPIENTS[0].email);
   const [subject, setSubject] = useState('URGENT: Kuttanad Inundation Alert & Immediate Evacuation Directive');
@@ -26,6 +26,23 @@ export default function AlertComposer() {
     setStatusResult(null);
 
     try {
+      if (isOffline) {
+        // Simulate queueing the alert locally
+        const queuedAlert = {
+          id: `alert-queued-${Date.now()}`,
+          subject,
+          message,
+          recipientEmail,
+          status: 'QUEUED (OFFLINE)',
+          timestamp: new Date().toISOString(),
+        };
+        setOfflineQueue(prev => [...prev, queuedAlert]);
+        recordSentAlert(queuedAlert);
+        setStatusResult({ success: true, message: 'System offline: Alert queued locally for sync.' });
+        setIsSending(false);
+        return;
+      }
+
       const response = await fetch('/api/send-alert', {
         method: 'POST',
         headers: {

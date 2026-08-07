@@ -64,7 +64,15 @@ export default function PlanCard({ plan, actionState = {}, onUpdateStatus }) {
 
       {/* Action Title & Description */}
       <h3 className="text-base font-bold text-slate-900 mb-1.5">{plan.title}</h3>
-      <p className="text-xs text-slate-700 leading-relaxed mb-4">{plan.description}</p>
+      <p className="text-xs text-slate-700 leading-relaxed mb-3">{plan.description}</p>
+
+      {/* Agentic Reasoning Trace (shown when LLM or mock agentic plan is used) */}
+      {plan.reasoning && (
+        <div className="mb-4 p-3 rounded-lg bg-indigo-50 border border-indigo-200 text-xs text-indigo-900 leading-relaxed">
+          <span className="font-bold text-indigo-700 block mb-1">🤖 AI Reasoning:</span>
+          {plan.reasoning}
+        </div>
+      )}
 
       {/* Metrics Row */}
       <div className="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-lg border border-slate-200 mb-4 text-xs font-mono">

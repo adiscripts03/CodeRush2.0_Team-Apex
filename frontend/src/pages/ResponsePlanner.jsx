@@ -1,10 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useApp } from '../state/AppContext';
 import PlanCard from '../components/PlanCard';
-import { generateEvacuationPlan } from '../lib/planGenerator';
+import { generateEvacuationPlan, generateAgenticPlan } from '../lib/planGenerator';
 import { calculateImpactEstimate } from '../lib/impactEstimate';
 import { useActivityLog } from '../lib/activityLogger';
-import { ClipboardCheck, RefreshCw, CheckCircle2, XCircle, AlertCircle, ShieldAlert } from 'lucide-react';
+import { ClipboardCheck, RefreshCw, CheckCircle2, XCircle, AlertCircle, ShieldAlert, Brain, Zap, Loader2 } from 'lucide-react';
 
 export default function ResponsePlanner() {
   const { logEvent } = useActivityLog();
@@ -16,6 +16,9 @@ export default function ResponsePlanner() {
     updateActionStatus,
   } = useApp();
 
+  const [planSource, setPlanSource] = useState(null); // 'rule-based' | 'llm' | 'mock' | 'fallback'
+  const [isAgenticLoading, setIsAgenticLoading] = useState(false);
+
   // Spatial impact calculate
   const impact = useMemo(() => {
     return calculateImpactEstimate({
@@ -26,7 +29,7 @@ export default function ResponsePlanner() {
     });
   }, [geoData]);
 
-  // Regenerate plan logic
+  // Rule-based regenerate plan
   const handleRegenerate = () => {
     const plans = generateEvacuationPlan({
       atRiskHospitals: impact.atRiskHospitals,
@@ -36,12 +39,39 @@ export default function ResponsePlanner() {
     });
 
     setRecommendedActions(plans);
+    setPlanSource('rule-based');
 
     logEvent({
       type: 'plan',
       message: `Regenerated ${plans.length} rule-based evacuation recommendations based on updated hazard coordinates.`,
       timestamp: new Date().toISOString(),
     });
+  };
+
+  // Agentic plan with LLM reasoning
+  const handleAgenticPlan = async () => {
+    setIsAgenticLoading(true);
+    try {
+      const result = await generateAgenticPlan({
+        atRiskHospitals: impact.atRiskHospitals,
+        atRiskShelters: impact.atRiskShelters,
+        safeShelters: impact.safeShelters,
+        shelterCapacities: geoData.shelterCapacities,
+      });
+
+      setRecommendedActions(result.plans);
+      setPlanSource(result.source);
+
+      logEvent({
+        type: 'plan',
+        message: `Agentic plan generated (${result.source}): ${result.plans.length} recommendations with reasoning traces.`,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (err) {
+      console.error('Agentic plan error:', err);
+    } finally {
+      setIsAgenticLoading(false);
+    }
   };
 
   const pendingCount = recommendedActions.filter(
@@ -56,6 +86,13 @@ export default function ResponsePlanner() {
     a => actionStates[a.id]?.status === 'rejected'
   ).length;
 
+  const sourceBadge = {
+    'llm': { label: 'LLM Agentic (OpenAI)', cls: 'bg-indigo-100 text-indigo-800 border-indigo-300' },
+    'mock': { label: 'Agentic (Simulated Reasoning)', cls: 'bg-violet-100 text-violet-800 border-violet-300' },
+    'fallback': { label: 'Rule-Based (Fallback)', cls: 'bg-slate-100 text-slate-700 border-slate-300' },
+    'rule-based': { label: 'Rule-Based', cls: 'bg-slate-100 text-slate-700 border-slate-300' },
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -67,25 +104,48 @@ export default function ResponsePlanner() {
               <ClipboardCheck className="w-6 h-6" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl font-bold text-slate-900">Response Action Planner</h1>
                 <span className="bg-amber-100 text-amber-900 text-xs font-bold px-2.5 py-0.5 rounded-full border border-amber-300">
                   Human-in-the-Loop Required
                 </span>
+                {planSource && sourceBadge[planSource] && (
+                  <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${sourceBadge[planSource].cls}`}>
+                    {sourceBadge[planSource].label}
+                  </span>
+                )}
               </div>
               <p className="text-xs text-slate-600 mt-0.5">
-                Rule-based evacuation and allocation recommendations generated from current satellite spatial overlays.
+                Rule-based or AI-agentic evacuation recommendations from current satellite spatial overlays.
               </p>
             </div>
           </div>
 
-          <button
-            onClick={handleRegenerate}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 font-bold text-xs transition-colors"
-          >
-            <RefreshCw className="w-4 h-4" />
-            <span>Re-Generate Action Recommendations</span>
-          </button>
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Rule-based regenerate */}
+            <button
+              onClick={handleRegenerate}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 font-bold text-xs transition-colors"
+            >
+              <RefreshCw className="w-4 h-4" />
+              <span>Rule-Based Plan</span>
+            </button>
+
+            {/* Agentic plan with LLM reasoning */}
+            <button
+              onClick={handleAgenticPlan}
+              disabled={isAgenticLoading}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white border border-indigo-700 font-bold text-xs transition-colors disabled:opacity-60"
+            >
+              {isAgenticLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Brain className="w-4 h-4" />
+              )}
+              <span>{isAgenticLoading ? 'Thinking...' : 'Agentic Plan (AI)'}</span>
+              {!isAgenticLoading && <Zap className="w-3.5 h-3.5 opacity-70" />}
+            </button>
+          </div>
         </div>
 
         {/* Action Status Summary Metrics */}
@@ -145,14 +205,24 @@ export default function ResponsePlanner() {
             <ClipboardCheck className="w-12 h-12 text-slate-400 mx-auto" />
             <h3 className="text-base font-bold text-slate-800">No Action Plans Generated Yet</h3>
             <p className="text-xs text-slate-500 max-w-md mx-auto">
-              Click "Re-Generate Action Recommendations" above or navigate to the Command Map to analyze spatial intersections.
+              Use <strong>Rule-Based Plan</strong> for deterministic recommendations, or <strong>Agentic Plan (AI)</strong> for LLM-reasoned decisions with natural-language justifications.
             </p>
-            <button
-              onClick={handleRegenerate}
-              className="px-4 py-2 rounded-xl bg-cyan-600 text-white text-xs font-bold hover:bg-cyan-700"
-            >
-              Generate Recommendations Now
-            </button>
+            <div className="flex items-center gap-2 justify-center flex-wrap pt-2">
+              <button
+                onClick={handleRegenerate}
+                className="px-4 py-2 rounded-xl bg-slate-200 text-slate-800 text-xs font-bold hover:bg-slate-300"
+              >
+                Rule-Based Plan
+              </button>
+              <button
+                onClick={handleAgenticPlan}
+                disabled={isAgenticLoading}
+                className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 flex items-center gap-2 disabled:opacity-60"
+              >
+                <Brain className="w-3.5 h-3.5" />
+                {isAgenticLoading ? 'Thinking...' : 'Agentic Plan (AI)'}
+              </button>
+            </div>
           </div>
         )}
 

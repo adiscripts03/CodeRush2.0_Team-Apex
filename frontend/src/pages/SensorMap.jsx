@@ -2,8 +2,9 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import * as turf from '@turf/turf';
 import { useApp } from '../state/AppContext';
-import { ArrowLeft, Activity, MapPin } from 'lucide-react';
+import { ArrowLeft, Activity, MapPin, AlertTriangle } from 'lucide-react';
 
 import 'leaflet/dist/leaflet.css';
 
@@ -80,6 +81,34 @@ export default function SensorMap() {
   const { geoData } = useApp();
   const sensors = geoData.sensors?.sensors || [];
 
+  const conflicts = React.useMemo(() => {
+    const list = [];
+    for (let i = 0; i < sensors.length; i++) {
+      for (let j = i + 1; j < sensors.length; j++) {
+        const s1 = sensors[i];
+        const s2 = sensors[j];
+        if (!s1.lat || !s2.lat) continue;
+        const pt1 = turf.point([s1.lng, s1.lat]);
+        const pt2 = turf.point([s2.lng, s2.lat]);
+        const dist = turf.distance(pt1, pt2, { units: 'kilometers' });
+        
+        // Flag if within 15km and one is normal while other is alert/overflowing
+        if (dist < 15) {
+          const st1 = s1.status.toLowerCase();
+          const st2 = s2.status.toLowerCase();
+          const isConflict = 
+            (st1 === 'normal' && (st2.includes('alert') || st2 === 'overflowing')) ||
+            (st2 === 'normal' && (st1.includes('alert') || st1 === 'overflowing'));
+            
+          if (isConflict) {
+            list.push({ s1, s2, distance: dist.toFixed(1) });
+          }
+        }
+      }
+    }
+    return list;
+  }, [sensors]);
+
   return (
     <div className="flex flex-col h-screen bg-slate-50 overflow-hidden relative">
       {/* Header Bar */}
@@ -104,6 +133,25 @@ export default function SensorMap() {
               Full-screen live geographic visualization of dam levels, reservoir gauges, and river stations with live condition indicators.
             </p>
           </div>
+
+          {conflicts.length > 0 && (
+            <div className="bg-rose-50 p-4 rounded-xl shadow-md border border-rose-200 max-w-sm">
+              <div className="flex items-center gap-2 mb-2 text-rose-700">
+                <AlertTriangle className="w-5 h-5" />
+                <h1 className="text-sm font-extrabold">Conflicting Observations</h1>
+              </div>
+              <div className="space-y-2 max-h-32 overflow-y-auto">
+                {conflicts.map((c, i) => (
+                  <div key={i} className="text-[10px] text-rose-900 leading-tight bg-white p-2 border border-rose-100 rounded">
+                    <strong>{c.s1.name}</strong> ({c.s1.status}) and <strong>{c.s2.name}</strong> ({c.s2.status}) are only <strong>{c.distance}km</strong> apart.
+                  </div>
+                ))}
+              </div>
+              <p className="text-[10px] text-rose-800 mt-2 font-semibold">
+                Resolution Policy: Defaulting to higher-severity reading pending manual ground verification.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Legend */}

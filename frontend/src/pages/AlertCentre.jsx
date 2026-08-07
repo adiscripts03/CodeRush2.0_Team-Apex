@@ -71,11 +71,15 @@ export default function AlertCentre() {
                               ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
                               : alert.status === 'FAILED'
                               ? 'bg-rose-100 text-rose-800 border border-rose-300'
+                              : alert.status === 'QUEUED (OFFLINE)'
+                              ? 'bg-amber-100 text-amber-800 border border-amber-300'
                               : 'bg-slate-200 text-slate-800'
                           }`}
                         >
                           {alert.status === 'DELIVERED' ? (
                             <CheckCircle className="w-3 h-3" />
+                          ) : alert.status === 'QUEUED (OFFLINE)' ? (
+                            <Clock className="w-3 h-3" />
                           ) : (
                             <AlertOctagon className="w-3 h-3" />
                           )}

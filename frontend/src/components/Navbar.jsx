@@ -1,10 +1,10 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, MapPin, ClipboardCheck, History, Bell, Activity, Zap, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, MapPin, ClipboardCheck, History, Bell, Activity, Zap, ChevronLeft, ChevronRight, TrendingUp, Wifi, WifiOff } from 'lucide-react';
 import { useApp } from '../state/AppContext';
 
 export default function Navbar() {
-  const { currentKeyframe, recommendedActions, actionStates, sentAlerts, isSidebarExpanded, toggleSidebar } = useApp();
+  const { currentKeyframe, recommendedActions, actionStates, sentAlerts, isSidebarExpanded, toggleSidebar, isOffline, toggleOffline } = useApp();
 
   const pendingCount = recommendedActions.filter(
     (a) => !actionStates[a.id] || actionStates[a.id].status === 'pending'
@@ -28,6 +28,7 @@ export default function Navbar() {
       icon: Bell,
       badge: sentAlerts.length > 0 ? sentAlerts.length : null,
     },
+    { path: '/evaluation', label: 'Evaluation Report', icon: TrendingUp },
   ];
 
   return (
@@ -129,6 +130,24 @@ export default function Navbar() {
             );
           })}
         </nav>
+      </div>
+      
+      {/* Offline Mode Toggle at Bottom */}
+      <div className="w-full mt-auto pt-4 border-t border-slate-100 flex justify-center">
+        <button
+          onClick={toggleOffline}
+          title={isOffline ? "Reconnect to Network" : "Simulate Offline Mode"}
+          className={`flex items-center gap-2 p-2 rounded-xl transition-all w-full justify-center ${
+            isOffline ? 'bg-rose-50 text-rose-600 border border-rose-200' : 'bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-800 border border-slate-200'
+          }`}
+        >
+          {isOffline ? <WifiOff className="w-4 h-4" /> : <Wifi className="w-4 h-4" />}
+          {isSidebarExpanded && (
+            <span className="text-xs font-bold whitespace-nowrap">
+              {isOffline ? 'Offline Mode' : 'Online'}
+            </span>
+          )}
+        </button>
       </div>
     </aside>
   );

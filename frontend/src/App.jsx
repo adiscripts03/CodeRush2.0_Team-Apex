@@ -10,6 +10,7 @@ import ActivityLog from './pages/ActivityLog';
 import AlertCentre from './pages/AlertCentre';
 import SensorMap from './pages/SensorMap';
 import SeismicMap from './pages/SeismicMap';
+import EvaluationReport from './pages/EvaluationReport';
 
 function MainLayout() {
   const { isSidebarExpanded } = useApp();
@@ -26,6 +27,7 @@ function MainLayout() {
           <Route path="/alerts" element={<AlertCentre />} />
           <Route path="/sensor-map" element={<SensorMap />} />
           <Route path="/seismic" element={<SeismicMap />} />
+          <Route path="/evaluation" element={<EvaluationReport />} />
         </Routes>
       </main>
     </div>

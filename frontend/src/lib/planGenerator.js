@@ -179,3 +179,48 @@ export function generateEvacuationPlan({ atRiskHospitals, atRiskShelters, safeSh
 
   return recommendations;
 }
+
+// --- AGENTIC RESPONSE PLANNER ---
+// Extends the rule-based planner with an LLM reasoning layer.
+// Calls /api/agentic-plan on the Express backend, which uses OpenAI if configured,
+// or falls back to a mocked reasoning trace.
+// Each recommendation includes a natural-language 'reasoning' field explaining the decision.
+// The existing human-in-the-loop Approve/Reject gate is fully preserved.
+export async function generateAgenticPlan({ atRiskHospitals, atRiskShelters, safeShelters, shelterCapacities }) {
+  try {
+    const response = await fetch('/api/agentic-plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        atRiskHospitals: atRiskHospitals.map(h => ({
+          name: h.properties?.name || h.properties?.['name:en'] || 'Unknown Hospital',
+          properties: h.properties,
+          geometry: h.geometry,
+        })),
+        atRiskShelters: atRiskShelters.slice(0, 5).map(s => ({
+          name: s.name || 'Unknown Shelter',
+          properties: s.properties,
+          geometry: s.geometry,
+        })),
+        safeShelters: safeShelters.map(s => ({
+          name: s.name || 'Unknown Safe Shelter',
+        })),
+        shelterCapacities,
+      }),
+    });
+
+    if (!response.ok) throw new Error(`Agentic plan request failed: ${response.status}`);
+
+    const data = await response.json();
+    if (data.success && data.plans) {
+      return { plans: data.plans, source: data.source };
+    }
+    throw new Error('Invalid agentic plan response');
+  } catch (err) {
+    console.warn('Agentic plan call failed, falling back to rule-based plan:', err);
+    // Fallback to rule-based synchronous plan
+    const fallbackPlans = generateEvacuationPlan({ atRiskHospitals, atRiskShelters, safeShelters, shelterCapacities });
+    return { plans: fallbackPlans, source: 'fallback' };
+  }
+}
+// --- END AGENTIC RESPONSE PLANNER ---

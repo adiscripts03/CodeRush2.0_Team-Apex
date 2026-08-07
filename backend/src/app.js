@@ -7,6 +7,7 @@ import hydroRoutes from './routes/hydroRoutes.js';
 import plannerRoutes from './routes/plannerRoutes.js';
 import approvalRoutes from './routes/approvalRoutes.js';
 import alertRoutes from './routes/alertRoutes.js';
+import agenticRoutes from './routes/agenticRoutes.js';
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use('/api/hydro', hydroRoutes);
 app.use('/api/planner', plannerRoutes);
 app.use('/api/actions', approvalRoutes);
 app.use('/api/alerts', alertRoutes);
+app.use('/api/agentic-plan', agenticRoutes);
 
 // Catch 404 and forward to error handler
 app.use(notFoundHandler);

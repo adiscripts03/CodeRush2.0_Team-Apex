@@ -40,6 +40,10 @@ export function AppProvider({ children }) {
   // Sent alerts state
   const [sentAlerts, setSentAlerts] = useState([]);
 
+  // Offline / low-bandwidth mode simulation
+  const [isOffline, setIsOffline] = useState(false);
+  const [offlineQueue, setOfflineQueue] = useState([]);
+
   // Sidebar expansion state
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const toggleSidebar = useCallback(() => {
@@ -163,7 +167,6 @@ export function AppProvider({ children }) {
     });
   }, [recommendedActions, logEvent]);
 
-  // Add sent alert
   const recordSentAlert = useCallback((alertRecord) => {
     setSentAlerts(prev => [alertRecord, ...prev]);
     logEvent({
@@ -171,6 +174,32 @@ export function AppProvider({ children }) {
       message: `Emergency Alert sent to ${alertRecord.recipientEmail}: "${alertRecord.subject}"`,
       timestamp: new Date().toISOString(),
       details: alertRecord
+    });
+  }, [logEvent]);
+
+  // Flush offline queue when reconnected
+  useEffect(() => {
+    if (!isOffline && offlineQueue.length > 0) {
+      logEvent({
+        type: 'observation',
+        message: `System reconnected. Flushing ${offlineQueue.length} queued alert(s) to server...`,
+        timestamp: new Date().toISOString()
+      });
+      // In a real app, we would re-send these via fetch. 
+      // For the simulation, we just clear the queue and assume they are processed.
+      setOfflineQueue([]);
+    }
+  }, [isOffline, offlineQueue.length, logEvent]);
+
+  const toggleOffline = useCallback(() => {
+    setIsOffline(prev => {
+      const newState = !prev;
+      logEvent({
+        type: 'observation',
+        message: newState ? 'Network simulation: System disconnected (Offline Mode)' : 'Network simulation: System reconnected (Online Mode)',
+        timestamp: new Date().toISOString()
+      });
+      return newState;
     });
   }, [logEvent]);
 
@@ -193,6 +222,10 @@ export function AppProvider({ children }) {
     isSidebarExpanded,
     setIsSidebarExpanded,
     toggleSidebar,
+    isOffline,
+    toggleOffline,
+    offlineQueue,
+    setOfflineQueue,
   };
 
   return (
