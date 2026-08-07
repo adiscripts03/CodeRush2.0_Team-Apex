@@ -3,9 +3,9 @@ import { Send, CheckCircle, AlertOctagon, Loader2, Mail } from 'lucide-react';
 import { useApp } from '../state/AppContext';
 
 const DEMO_RECIPIENTS = [
-  { label: 'Alappuzha District Collectorate Control Room', email: 'collectorate.alappuzha@kerala.gov.in' },
-  { label: 'Kottayam Emergency Operations Centre (EOC)', email: 'eoc.kottayam@kerala.gov.in' },
-  { label: 'NDRF 10th Battalion Relief Dispatch', email: 'ndrf.kerala.dispatch@gov.in' },
+  { label: 'Alappuzha District Collectorate Control Room', email: 'collectorate.alappuzha@eoc.gov.in' },
+  { label: 'Kottayam Emergency Operations Centre (EOC)', email: 'eoc.kottayam@eoc.gov.in' },
+  { label: 'NDRF 10th Battalion Relief Dispatch', email: 'ndrf.dispatch@gov.in' },
   { label: 'Demo Email Test Recipient', email: 'demo.responder@disaster-command.org' }
 ];
 

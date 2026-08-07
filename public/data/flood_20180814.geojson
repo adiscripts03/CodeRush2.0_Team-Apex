@@ -5,7 +5,7 @@
     {
       "type": "Feature",
       "properties": {
-        "event": "Kerala Floods 2018",
+        "event": "Historical Flood 2018",
         "date": "2018-08-14",
         "source": "Dartmouth Flood Observatory / Sentinel-1 SAR",
         "area_ha": 28737,
@@ -34,7 +34,7 @@
     {
       "type": "Feature",
       "properties": {
-        "event": "Kerala Floods 2018",
+        "event": "Historical Flood 2018",
         "date": "2018-08-14",
         "source": "Dartmouth Flood Observatory / Sentinel-1 SAR",
         "area_ha": 8500,

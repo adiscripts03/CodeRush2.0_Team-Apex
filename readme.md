@@ -1,42 +1,41 @@
 # Disaster Management Command System
 
-> Historical simulation and replay tool based on the Kerala Floods of August 2018. This is not a live monitoring system.
+> **DISCLAIMER & PROVENANCE NOTICE**: This system is a **historical simulation and replay tool** based on the extreme Kerala Floods event of August 2018 (Alappuzha and Kottayam districts). It is **NOT** a live real-time monitoring tool.
 
-## Overview
+---
 
-The app combines a React + Leaflet command center with a small Express API for alert dispatch. It focuses on flood replay, impact assessment, planning, and audit logging.
+## 🌟 Key Features
 
-## Architecture
+1. **Detection & Hazard Replay**
+   - Interactive horizontal scrubber driven by historical satellite keyframes (`2018-08-14` onset, `2018-08-15` data gap, `2018-08-17` peak flood).
+   - Dynamic **Confidence Indicators** (numeric 0.0–1.0 and visual tags).
+   - **Data-Gap Banner Warning** explicitly alerting users when satellite coverage is unavailable and models interpolate growth.
 
-```mermaid
-flowchart LR
-  U[Commander] --> UI[React + Vite Frontend]
-  UI --> M[Map, timeline, planning, activity views]
-  UI --> A[API /api/send-alert]
-  A --> S[Express backend]
-  S --> E[Nodemailer or demo log]
-```
+2. **Evacuation Planning & Decision Support (Human-in-the-Loop)**
+   - Rule-based decision generator (`src/lib/planGenerator.js`) calculating nearest safe relief shelters with available capacity and routing vectors.
+   - **Human-in-the-Loop Framework**: Action cards require explicit commander review with **Approve**, **Edit Directives**, or **Reject** choices. Unapproved recommendations remain strictly labeled as draft directives.
 
-```mermaid
-flowchart TB
-  T[Historical data assets] --> F[Flood replay]
-  T --> I[Impact estimate]
-  T --> P[Plan generator]
-  T --> L[Activity log]
-  F --> C[Command Centre]
-  I --> C
-  P --> C
-  L --> C
-```
+3. **Geospatial Impact Analysis (Turf.js)**
+   - Calculates flooded surface area in hectares (matching Dartmouth Flood Observatory benchmarks: 28,737 ha to 50,119 ha peak).
+   - Identifies at-risk hospitals and submerged road networks.
 
-## What it does
+4. **Activity Audit Stream**
+   - Timestamped log capturing satellite timeline scrubbing, plan generation, human approval actions, and emergency alert dispatches.
 
-- Replays flood progression with timeline scrubbing and confidence indicators.
-- Estimates impact using Turf.js and map layers for roads, rivers, shelters, and hospitals.
-- Generates evacuation guidance with human approval before action.
-- Sends emergency alerts through a minimal Express endpoint.
+5. **Emergency Alert Center**
+   - Minimal Express backend endpoint (`POST /api/send-alert`) for transmitting emergency transactional alerts to district response command nodes.
 
-## Tech Stack
+---
+
+## 📊 Data Provenance & Credits
+
+- **Satellite Flood Extents**: Dartmouth Flood Observatory (DFO) / Sentinel-1 SAR observations for Kerala August 2018.
+- **Infrastructure (Hospitals, Shelters, Roads, Rivers)**: Sourced from [OpenStreetMap](https://www.openstreetmap.org/) via Overpass API under the Open Database License (ODbL).
+- **Synthetic Datasets**: Reservoir levels (`sensor_log.json`) and shelter capacity limits (`shelters_capacity.json`) are synthetic fixtures generated for operational demonstration purposes.
+
+---
+
+## 🛠️ Tech Stack
 
 - Frontend: React, Vite, Tailwind CSS, Leaflet, Recharts
 - Spatial analysis: `@turf/turf`, `react-leaflet`

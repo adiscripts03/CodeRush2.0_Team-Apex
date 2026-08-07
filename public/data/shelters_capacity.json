@@ -1,5 +1,5 @@
 {
-  "note": "SYNTHETIC SHELTER CAPACITIES — Sourced fallback capacities for OpenStreetMap school/shelter points and polygons in Kerala emergency response dataset.",
+  "note": "SYNTHETIC SHELTER CAPACITIES — Sourced fallback capacities for OpenStreetMap school/shelter points and polygons in emergency response dataset.",
   "defaults": {
     "school": { "capacity_total": 250, "capacity_available": 180 },
     "community_centre": { "capacity_total": 150, "capacity_available": 110 },

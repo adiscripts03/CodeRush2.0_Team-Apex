@@ -22,6 +22,27 @@ const shelterIcon = L.divIcon({
   iconAnchor: [13, 13],
 });
 
+function MapResizer() {
+  const map = useMap();
+  useEffect(() => {
+    map.invalidateSize();
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [map]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      map.invalidateSize();
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [map]);
+
+  return null;
+}
+
 export default function MapView({
   geoData,
   layerVisibility,
@@ -34,13 +55,14 @@ export default function MapView({
   const shelterFeatures = geoData?.shelters?.features?.slice(0, 200) || [];
 
   return (
-    <div className="w-full h-full relative rounded-xl overflow-hidden border border-slate-200 shadow-md bg-slate-100">
+    <div className="w-full h-full min-h-[350px] relative rounded-xl overflow-hidden border border-slate-200 shadow-md bg-slate-100 flex flex-col">
       <MapContainer
         center={defaultCenter}
         zoom={defaultZoom}
         scrollWheelZoom={true}
-        className="w-full h-full z-0"
+        className="w-full h-full flex-1 z-0"
       >
+        <MapResizer />
         {/* CartoDB Voyager Light Tiles */}
         <TileLayer
           attribution='&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap'

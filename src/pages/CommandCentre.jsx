@@ -51,29 +51,6 @@ export default function CommandCentre() {
     <div className="min-h-[calc(100vh-4rem)] bg-slate-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
 
-        {/* Banner Disclaimer */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-cyan-50 text-cyan-700 border border-cyan-200">
-              <ShieldCheck className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-lg font-extrabold text-slate-900">Kerala Floods (August 2018) Historical Command System</h1>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-100 text-cyan-800 border border-cyan-300">
-                  REPLAY MODE
-                </span>
-              </div>
-              <p className="text-xs text-slate-600">
-                Disaster simulation & decision support platform using real Dartmouth Flood Observatory satellite polygons and OSM infrastructure datasets.
-              </p>
-            </div>
-          </div>
-
-          <div className="shrink-0">
-            <ConfidenceBadge confidence={currentKeyframe?.confidence} source={currentKeyframe?.source} />
-          </div>
-        </div>
 
         {/* Metric Summary Widgets Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -175,7 +152,7 @@ export default function CommandCentre() {
               </button>
             </div>
 
-            <div className="w-full h-80 rounded-xl overflow-hidden border border-slate-200">
+            <div className="w-full flex-1 min-h-[420px] rounded-xl overflow-hidden border border-slate-200">
               <MapView geoData={geoData} layerVisibility={layerVisibility} />
             </div>
           </div>

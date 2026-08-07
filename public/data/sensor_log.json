@@ -1,5 +1,5 @@
 {
-  "note": "SYNTHETIC SENSOR FEED — Loosely based on Kerala reservoir capacity levels (Idukki, Kakki, Pamba) prior to peak rainfall in August 2018.",
+  "note": "SYNTHETIC SENSOR FEED — Loosely based on regional reservoir capacity levels (Idukki, Kakki, Pamba) prior to peak rainfall in August 2018.",
   "sensors": [
     {
       "id": "RS-01",

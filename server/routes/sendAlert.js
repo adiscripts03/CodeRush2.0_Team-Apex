@@ -50,7 +50,7 @@ router.post('/', async (req, res) => {
               ${message}
             </div>
             <p style="font-size: 11px; color: #94a3b8; margin-top: 20px;">
-              Historical Simulation Broadcast — Kerala Floods 2018 Replay Prototype.
+              Historical Simulation Broadcast — Flood Response 2018 Replay Prototype.
             </p>
           </div>
         `,
