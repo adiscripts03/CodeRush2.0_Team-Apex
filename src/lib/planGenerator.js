@@ -58,87 +58,109 @@ export function generateEvacuationPlan({ atRiskHospitals, atRiskShelters, safeSh
     return nearest;
   };
 
-  // 1. Priority 1 Actions: Evacuate Critical At-Risk Hospitals
+  // --- PRIORITIZED EVACUATION ZONES FEATURE ---
+  // Rank zones by a combination of flood exposure, road access, distance to safety, and available shelter capacity.
+  // This logic is explicitly added to ensure planner and map agree on the priority order.
+  
+  // Step 1: Collect all at-risk zones (hospitals and shelters)
+  let evacuationZones = [];
+
   atRiskHospitals.forEach((hospital, idx) => {
-    const hospPt = hospital.geometry.type === 'Point' ? hospital : turf.centroid(hospital);
-    const nearestShelter = findNearestAvailableShelter(hospPt);
-
-    const hospName = hospital.properties?.name || hospital.properties?.['name:en'] || `Hospital Zone #${idx + 1}`;
-    const evacCount = Math.floor(Math.random() * 40) + 30; // 30-70 patients/staff
-
-    if (nearestShelter) {
-      // Deduct capacity
-      const trackerObj = shelterCapacityTracker.get(nearestShelter.shelterKey);
-      if (trackerObj) {
-        trackerObj.capacity_available = Math.max(0, trackerObj.capacity_available - evacCount);
-      }
-
-      const sourceCoords = hospPt.geometry.coordinates;
-      const targetCoords = nearestShelter.shelterPt.geometry.coordinates;
-
-      recommendations.push({
-        id: `plan-hosp-${idx + 1}-${Date.now()}`,
-        priority: 'P1 - CRITICAL',
-        type: 'Medical Evacuation',
-        title: `Evacuate ${hospName}`,
-        description: `Transfer ${evacCount} high-risk patients and medical personnel from ${hospName} to designated safe hub ${nearestShelter.shelterFeature.name}.`,
-        sourceLocation: hospName,
-        targetShelterName: nearestShelter.shelterFeature.name,
-        estimatedPatients: evacCount,
-        distanceKm: nearestShelter.distanceKm,
-        allocatedCapacity: trackerObj ? trackerObj.capacity_available : 0,
-        routePolyline: [
-          [sourceCoords[1], sourceCoords[0]], // [lat, lng] for Leaflet
-          [targetCoords[1], targetCoords[0]],
-        ],
-        timestamp: new Date().toISOString(),
-      });
-    }
+    evacuationZones.push({
+      type: 'hospital',
+      feature: hospital,
+      name: hospital.properties?.name || hospital.properties?.['name:en'] || `Hospital Zone #${idx + 1}`,
+      evacCount: Math.floor(Math.random() * 40) + 30, // 30-70 patients/staff
+      floodExposure: 80, // Hospitals have higher base risk/exposure
+      roadAccess: 70     // Estimated road access score
+    });
   });
 
-  // 2. Priority 2 Actions: Relocate At-Risk Inundated Shelters
   atRiskShelters.slice(0, 5).forEach((shelter, idx) => {
-    const sPt = shelter.geometry.type === 'Point' ? shelter : turf.centroid(shelter);
-    const nearestShelter = findNearestAvailableShelter(sPt);
-
-    const shelterName = shelter.name || `At-Risk Shelter #${idx + 1}`;
-    const evacCount = Math.floor(Math.random() * 80) + 50;
-
-    if (nearestShelter) {
-      const trackerObj = shelterCapacityTracker.get(nearestShelter.shelterKey);
-      if (trackerObj) {
-        trackerObj.capacity_available = Math.max(0, trackerObj.capacity_available - evacCount);
-      }
-
-      const sourceCoords = sPt.geometry.coordinates;
-      const targetCoords = nearestShelter.shelterPt.geometry.coordinates;
-
-      recommendations.push({
-        id: `plan-shelter-${idx + 1}-${Date.now()}`,
-        priority: 'P2 - HIGH',
-        type: 'Shelter Transfer',
-        title: `Relocate ${shelterName}`,
-        description: `Relocate ${evacCount} evacuees from flooded facility ${shelterName} to safe relief center ${nearestShelter.shelterFeature.name}.`,
-        sourceLocation: shelterName,
-        targetShelterName: nearestShelter.shelterFeature.name,
-        estimatedPatients: evacCount,
-        distanceKm: nearestShelter.distanceKm,
-        allocatedCapacity: trackerObj ? trackerObj.capacity_available : 0,
-        routePolyline: [
-          [sourceCoords[1], sourceCoords[0]],
-          [targetCoords[1], targetCoords[0]],
-        ],
-        timestamp: new Date().toISOString(),
-      });
-    }
+    evacuationZones.push({
+      type: 'shelter',
+      feature: shelter,
+      name: shelter.name || `At-Risk Shelter #${idx + 1}`,
+      evacCount: Math.floor(Math.random() * 80) + 50,
+      floodExposure: 50, // Base flood exposure
+      roadAccess: 60     // Estimated road access score
+    });
   });
 
-  // 3. Fallback Priority 3: Supply Corridor Dispatch if no critical facility evacuations
+  // Step 2: Calculate scores for each zone to rank them
+  evacuationZones.forEach(zone => {
+    const pt = zone.feature.geometry.type === 'Point' ? zone.feature : turf.centroid(zone.feature);
+    zone.pt = pt;
+    
+    // Find nearest shelter to evaluate distance to safety and available capacity
+    const nearest = findNearestAvailableShelter(pt);
+    
+    let distanceScore = 0;
+    let capacityScore = 0;
+    
+    if (nearest) {
+      // Higher score for closer distance to safety
+      distanceScore = Math.max(0, 50 - nearest.distanceKm); 
+      // Higher score for more available capacity
+      capacityScore = Math.min(50, nearest.capacityData.capacity_available / 5);
+    }
+    
+    // Final combination of factors
+    zone.score = zone.floodExposure + zone.roadAccess + distanceScore + capacityScore;
+  });
+
+  // Step 3: Sort zones by highest score first (Priority Ranking)
+  evacuationZones.sort((a, b) => b.score - a.score);
+
+  // Step 4: Process zones in priority order
+  evacuationZones.forEach((zone, index) => {
+    const nearestShelter = findNearestAvailableShelter(zone.pt);
+    if (!nearestShelter) return; // Skip if no safe shelter available
+    
+    // Deduct allocated capacity from the tracker
+    const trackerObj = shelterCapacityTracker.get(nearestShelter.shelterKey);
+    if (trackerObj) {
+      trackerObj.capacity_available = Math.max(0, trackerObj.capacity_available - zone.evacCount);
+    }
+
+    const sourceCoords = zone.pt.geometry.coordinates;
+    const targetCoords = nearestShelter.shelterPt.geometry.coordinates;
+
+    // Assign clear priority labels based on ranking
+    let priorityLabel = 'LOW';
+    if (index === 0) priorityLabel = 'CRITICAL';
+    else if (index === 1) priorityLabel = 'HIGH';
+    else if (index === 2) priorityLabel = 'MEDIUM';
+
+    recommendations.push({
+      id: `plan-${zone.type}-${index + 1}-${Date.now()}`,
+      priority: priorityLabel,
+      type: zone.type === 'hospital' ? 'Medical Evacuation' : 'Shelter Transfer',
+      title: zone.type === 'hospital' ? `Evacuate ${zone.name}` : `Relocate ${zone.name}`,
+      description: zone.type === 'hospital' 
+        ? `Transfer ${zone.evacCount} high-risk patients and medical personnel from ${zone.name} to designated safe hub ${nearestShelter.shelterFeature.name}.`
+        : `Relocate ${zone.evacCount} evacuees from flooded facility ${zone.name} to safe relief center ${nearestShelter.shelterFeature.name}.`,
+      sourceLocation: zone.name,
+      targetShelterName: nearestShelter.shelterFeature.name,
+      estimatedPatients: zone.evacCount,
+      distanceKm: nearestShelter.distanceKm,
+      allocatedCapacity: trackerObj ? trackerObj.capacity_available : 0,
+      routePolyline: [
+        [sourceCoords[1], sourceCoords[0]],
+        [targetCoords[1], targetCoords[0]],
+      ],
+      timestamp: new Date().toISOString(),
+    });
+  });
+
+  // --- END PRIORITIZED EVACUATION ZONES FEATURE ---
+
+  // Fallback: Supply Corridor Dispatch if no facility evacuations
   if (recommendations.length === 0 && safeShelters.length > 0) {
     const sampleShelter = safeShelters[0];
     recommendations.push({
       id: `plan-supply-${Date.now()}`,
-      priority: 'P3 - STANDARD',
+      priority: 'LOW',
       type: 'Supply Line Dispatch',
       title: `Pre-position Clean Water & Rations at ${sampleShelter.name}`,
       description: `Dispatch mobile disaster relief units with potable water and emergency food packs to ${sampleShelter.name}.`,
