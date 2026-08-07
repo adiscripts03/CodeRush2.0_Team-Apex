@@ -21,7 +21,7 @@ export default function ActivityLog() {
   ];
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-slate-50 p-6">
+    <div className="min-h-screen bg-slate-50 p-6">
       <div className="max-w-5xl mx-auto space-y-6">
 
         {/* Header */}

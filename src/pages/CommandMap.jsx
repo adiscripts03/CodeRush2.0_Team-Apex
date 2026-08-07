@@ -57,7 +57,7 @@ export default function CommandMap() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] bg-slate-50 overflow-hidden">
+    <div className="flex flex-col h-screen bg-slate-50 overflow-hidden">
       {/* Data Gap Banner (if current keyframe has data_gap: true) */}
       <DataGapBanner currentKeyframe={currentKeyframe} />
 

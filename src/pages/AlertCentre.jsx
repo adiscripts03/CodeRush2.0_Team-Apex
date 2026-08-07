@@ -7,7 +7,7 @@ export default function AlertCentre() {
   const { sentAlerts } = useApp();
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-slate-50 p-6">
+    <div className="min-h-screen bg-slate-50 p-6">
       <div className="max-w-6xl mx-auto space-y-6">
 
         {/* Page Header */}

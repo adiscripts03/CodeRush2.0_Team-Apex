@@ -1,10 +1,10 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, MapPin, ClipboardCheck, History, Bell, Activity, Zap } from 'lucide-react';
+import { LayoutDashboard, MapPin, ClipboardCheck, History, Bell, Activity, Zap, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useApp } from '../state/AppContext';
 
 export default function Navbar() {
-  const { currentKeyframe, recommendedActions, actionStates, sentAlerts } = useApp();
+  const { currentKeyframe, recommendedActions, actionStates, sentAlerts, isSidebarExpanded, toggleSidebar } = useApp();
 
   const pendingCount = recommendedActions.filter(
     (a) => !actionStates[a.id] || actionStates[a.id].status === 'pending'
@@ -31,59 +31,105 @@ export default function Navbar() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+    <aside 
+      className={`fixed top-0 left-0 bottom-0 bg-white border-r border-slate-200 z-50 flex flex-col justify-between py-4 shadow-sm select-none transition-all duration-300 ${
+        isSidebarExpanded ? 'w-64 px-4' : 'w-16 px-2 items-center'
+      }`}
+    >
+      <div className="space-y-6 w-full">
         
-        {/* Brand Title */}
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-cyan-600 flex items-center justify-center shadow-md shadow-cyan-600/20 text-white">
-            <Activity className="w-5 h-5 font-bold" />
+        {/* Brand Header & Toggle Button */}
+        {isSidebarExpanded ? (
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3.5 w-full">
+            <NavLink to="/" className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-cyan-600 flex items-center justify-center text-white shadow-md shadow-cyan-600/20 shrink-0">
+                <Activity className="w-5 h-5 font-bold" />
+              </div>
+              <h1 className="font-black text-2xl text-slate-900 tracking-wide font-sans whitespace-nowrap">
+                सुरक्षा सेतु
+              </h1>
+            </NavLink>
+            <button
+              onClick={toggleSidebar}
+              title="Collapse Sidebar"
+              className="p-1.5 rounded-lg bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200 transition-all cursor-pointer"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
           </div>
-          <div>
-            <h1 className="font-extrabold text-base text-slate-900 tracking-tight">
-              Disaster Command <span className="text-cyan-600 font-mono">v1.0</span>
-            </h1>
-            <p className="text-[11px] text-slate-500">Real-Time Simulation & Decision Support Platform</p>
+        ) : (
+          <div className="flex flex-col items-center gap-2 border-b border-slate-100 pb-3 w-full">
+            <NavLink
+              to="/"
+              title="सुरक्षा सेतु"
+              className="flex flex-col items-center gap-1 group cursor-pointer"
+            >
+              <div className="w-10 h-10 rounded-xl bg-cyan-600 flex items-center justify-center text-white shadow-md shadow-cyan-600/20 group-hover:scale-105 transition-transform">
+                <Activity className="w-5 h-5 font-bold" />
+              </div>
+              <span className="font-black text-xs text-slate-900 tracking-tight leading-tight text-center font-sans">
+                सुरक्षा<br />सेतु
+              </span>
+            </NavLink>
+            <button
+              onClick={toggleSidebar}
+              title="Expand Sidebar"
+              className="mt-1 p-1 rounded-lg bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200 transition-all cursor-pointer"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
-        </div>
+        )}
 
-        {/* Navigation Links */}
-        <nav className="hidden md:flex items-center gap-1">
+        {/* Navigation Items List */}
+        <nav className="flex flex-col gap-4.5 w-full">
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
               <NavLink
                 key={item.path}
                 to={item.path}
+                title={!isSidebarExpanded ? item.label : undefined}
                 className={({ isActive }) =>
-                  `flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 relative ${
+                  `flex items-center transition-all duration-200 relative group rounded-xl ${
+                    isSidebarExpanded
+                      ? 'justify-between px-3.5 py-3 text-xs font-semibold'
+                      : 'justify-center w-10 h-10 mx-auto'
+                  } ${
                     isActive
-                      ? 'bg-cyan-50 text-cyan-700 border border-cyan-200 shadow-sm font-bold'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                      ? 'bg-cyan-50 text-cyan-700 border border-cyan-200 shadow-sm font-bold scale-105'
+                      : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
                   }`
                 }
               >
-                <Icon className="w-4 h-4" />
-                <span>{item.label}</span>
+                <div className="flex items-center gap-3">
+                  <Icon className="w-5 h-5 shrink-0" />
+                  {isSidebarExpanded && <span className="truncate">{item.label}</span>}
+                </div>
+
                 {item.badge && (
-                  <span className="ml-1 bg-amber-500 text-white font-mono text-[10px] font-extrabold px-1.5 py-0.2 rounded-full">
+                  <span
+                    className={
+                      isSidebarExpanded
+                        ? 'bg-amber-500 text-white font-mono text-[10px] font-extrabold px-2 py-0.5 rounded-full'
+                        : 'absolute -top-1 -right-1 bg-amber-500 text-white font-mono text-[9px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center shadow border border-white'
+                    }
+                  >
                     {item.badge}
                   </span>
+                )}
+
+                {/* Floating Tooltip when Collapsed */}
+                {!isSidebarExpanded && (
+                  <div className="opacity-0 group-hover:opacity-100 transition-all pointer-events-none absolute left-14 bg-slate-900 text-white font-sans text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow-xl whitespace-nowrap z-50">
+                    {item.label}
+                  </div>
                 )}
               </NavLink>
             );
           })}
         </nav>
-
-        {/* Current Simulation Indicator */}
-        <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
-          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-          <span className="text-xs font-mono text-slate-700 font-medium">
-            {currentKeyframe?.label || 'Aug 2018 Event'}
-          </span>
-        </div>
-
       </div>
-    </header>
+    </aside>
   );
 }

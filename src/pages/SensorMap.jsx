@@ -81,7 +81,7 @@ export default function SensorMap() {
   const sensors = geoData.sensors?.sensors || [];
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] bg-slate-50 overflow-hidden relative">
+    <div className="flex flex-col h-screen bg-slate-50 overflow-hidden relative">
       {/* Header Bar */}
       <div className="absolute top-4 left-4 right-4 z-[400] flex justify-between items-start pointer-events-none">
         

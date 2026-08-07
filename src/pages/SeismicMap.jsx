@@ -140,7 +140,7 @@ export default function SeismicMap() {
   }, [seismicData.events]);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] bg-slate-900 text-slate-100 overflow-hidden relative font-sans">
+    <div className="flex flex-col h-screen bg-slate-900 text-slate-100 overflow-hidden relative font-sans">
       
       {/* Top Floating Control Bar */}
       <div className="absolute top-4 left-4 right-4 z-[400] flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pointer-events-none">

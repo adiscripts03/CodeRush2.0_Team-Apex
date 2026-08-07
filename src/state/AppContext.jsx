@@ -40,6 +40,12 @@ export function AppProvider({ children }) {
   // Sent alerts state
   const [sentAlerts, setSentAlerts] = useState([]);
 
+  // Sidebar expansion state
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const toggleSidebar = useCallback(() => {
+    setIsSidebarExpanded(prev => !prev);
+  }, []);
+
   // Fetch initial event timeline and static datasets
   useEffect(() => {
     async function loadInitialData() {
@@ -184,6 +190,9 @@ export function AppProvider({ children }) {
     updateActionStatus,
     sentAlerts,
     recordSentAlert,
+    isSidebarExpanded,
+    setIsSidebarExpanded,
+    toggleSidebar,
   };
 
   return (
