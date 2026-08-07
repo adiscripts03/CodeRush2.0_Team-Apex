@@ -10,4 +10,8 @@ export { SystemHealthSnapshotModel } from "./system-health-snapshot.model.js";
 export { FloodPolygonModel } from "./flood-polygon.model.js";
 export { FloodSnapshotModel } from "./flood-snapshot.model.js";
 export { DetectionResultModel } from "./detection-result.model.js";
+export { ImpactAssessmentModel } from "./impact-assessment.model.js";
+export { AffectedFacilityModel } from "./affected-facility.model.js";
+export { AffectedPopulationModel } from "./affected-population.model.js";
+
 

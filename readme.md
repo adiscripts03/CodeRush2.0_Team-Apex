@@ -10,20 +10,22 @@ Milestone 3 implements the Historical Replay Engine: timeline models, snapshot l
 
 Milestone 4 implements the Flood Detection & Change Detection Engine: Sentinel-2 NDWI band extraction, GeoJSON polygon generation, confidence scoring, spatial expansion/recession change detection (Turf.js), Mapbox change overlays, and flood intelligence APIs (`/flood/current`, `/flood/history`, `/flood/detect`, `/flood/change/:timestamp`).
 
+Milestone 5 implements the Impact Assessment Engine: intersecting flood extent polygons with GIS layers (population, roads, hospitals, shelters, schools, districts), calculating affected population, blocked road length (km), inundated critical facilities, estimated shelter demand (20% displacement ratio), severity scoring (0.0 to 1.0 / Low to Critical), and impact APIs (`/impact/:timestamp`, `/impact/summary`, `/impact/population`, `/impact/infrastructure`).
+
 ## Architecture
 
 The system follows the core decision loop:
 
 Observe -> Estimate -> Explain uncertainty -> Plan within constraints -> Human approval -> Simulation execution -> Evaluation -> Learning report -> Observe again
 
-Milestone 1 creates the traceable substrate. Milestone 2 adds GIS base layers. Milestone 3 provides time-aware historical replay. Milestone 4 provides satellite flood extent detection and spatial change analysis.
+Milestone 1 creates the traceable substrate. Milestone 2 adds GIS base layers. Milestone 3 provides time-aware historical replay. Milestone 4 provides satellite flood extent detection & spatial change analysis. Milestone 5 provides real-time impact assessment & severity evaluation.
 
 Floods are represented as the first hazard module under `backend/src/hazards/flood`. Future hazards must register through the same module boundary instead of changing core infrastructure.
 
 ## Workspace
 
-- `backend`: Express, TypeScript, MongoDB/Mongoose, audit logging, health checks, GIS, replay, flood detection.
-- `frontend`: React, TypeScript, Vite, TailwindCSS, Mapbox visualizer, replay controls, flood intelligence panel.
+- `backend`: Express, TypeScript, MongoDB/Mongoose, audit logging, health checks, GIS, replay, flood detection, impact assessment.
+- `frontend`: React, TypeScript, Vite, TailwindCSS, Mapbox visualizer, replay controls, flood intelligence panel, impact summary panel.
 - `docs`: milestone architecture, schema, API, setup, ADRs, and acceptance criteria.
 
 ## Quick Start

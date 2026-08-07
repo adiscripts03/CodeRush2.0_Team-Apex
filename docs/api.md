@@ -197,4 +197,27 @@ Response: `201 Created` with `DetectionResult`.
 
 Returns spatial change analysis (expanded, receded, persisted area, expansion rate) comparing target timestamp to prior snapshot.
 
+## `GET /impact/:timestamp` (alias `/api/impact/:timestamp`)
+
+Returns full impact assessment for a given timestamp, including affected population, blocked road count/length, affected hospitals/shelters/schools, shelter demand estimate, and severity score.
+
+## `GET /impact/summary` (alias `/api/impact/summary`)
+
+Returns latest impact assessment summary.
+
+## `GET /impact/population` (alias `/api/impact/population`)
+
+Returns district-level affected population exposure breakdowns.
+
+Query params:
+- `timestamp`: Optional ISO 8601 datetime string.
+
+## `GET /impact/infrastructure` (alias `/api/impact/infrastructure`)
+
+Returns list of all inundated critical facilities (hospitals, shelters, schools) and blocked road segments.
+
+Query params:
+- `timestamp`: Optional ISO 8601 datetime string.
+
+
 

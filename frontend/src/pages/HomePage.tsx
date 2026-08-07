@@ -1,15 +1,18 @@
 import { useEffect, useState, type ReactElement } from "react";
 import { EocMap } from "../components/EocMap";
 import { FloodAnalysisPanel } from "../components/FloodAnalysisPanel";
+import { ImpactSummaryPanel } from "../components/ImpactSummaryPanel";
 import { ReplayControls } from "../components/ReplayControls";
 import { SnapshotPanel } from "../components/SnapshotPanel";
 import { StatusPill } from "../components/StatusPill";
 import { frontendEnv } from "../config/env";
 import type { ChangeDetectionResponse, FloodSnapshot } from "../flood/flood.types";
+import type { ImpactAssessment } from "../impact/impact.types";
 import { useGisLayers } from "../hooks/useGisLayers";
 import { useBackendHealth } from "../hooks/useBackendHealth";
 import { useReplayController } from "../hooks/useReplayController";
 import { fetchCurrentFlood, fetchFloodChange } from "../services/flood.service";
+import { fetchImpactByTimestamp, fetchLatestImpactSummary } from "../services/impact.service";
 import { formatMongoStatus } from "../services/health.service";
 
 export function HomePage(): ReactElement {
@@ -20,20 +23,25 @@ export function HomePage(): ReactElement {
 
   const [floodSnapshot, setFloodSnapshot] = useState<FloodSnapshot | null>(null);
   const [changeData, setChangeData] = useState<ChangeDetectionResponse | null>(null);
+  const [impactAssessment, setImpactAssessment] = useState<ImpactAssessment | null>(null);
   const [showChangeOverlay, setShowChangeOverlay] = useState(true);
 
-  // Fetch current flood snapshot & change detection when replay timestamp changes
+  // Fetch current flood snapshot, change detection & impact assessment when replay timestamp changes
   useEffect(() => {
     fetchCurrentFlood()
-      .then((res) => {
-        setFloodSnapshot(res.snapshot);
-      })
+      .then((res) => setFloodSnapshot(res.snapshot))
       .catch(() => {});
 
     if (replay.activeSnapshot?.timestamp) {
       fetchFloodChange(replay.activeSnapshot.timestamp)
         .then((res) => setChangeData(res))
         .catch(() => setChangeData(null));
+
+      fetchImpactByTimestamp(replay.activeSnapshot.timestamp)
+        .then((res) => setImpactAssessment(res))
+        .catch(() => {
+          fetchLatestImpactSummary().then((res) => setImpactAssessment(res)).catch(() => {});
+        });
     }
   }, [replay.activeSnapshot]);
 
@@ -44,7 +52,7 @@ export function HomePage(): ReactElement {
           <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">Emergency Operations Center</p>
           <h1 className="mt-2 text-3xl font-semibold">Kerala Floods 2018 Intelligence Engine</h1>
           <p className="mt-3 max-w-3xl text-base leading-7 text-zinc-700">
-            Simulation-first disaster management system with Sentinel-2 flood extent detection, spatial change analysis, historical replay, and traceable infrastructure.
+            Simulation-first disaster management system with Sentinel-2 flood extent detection, spatial change analysis, impact assessment, historical replay, and traceable infrastructure.
           </p>
         </div>
 
@@ -93,6 +101,9 @@ export function HomePage(): ReactElement {
           isLoading={replay.isLoading}
           onToggleChangeOverlay={setShowChangeOverlay}
         />
+
+        {/* Impact Assessment Summary Panel */}
+        <ImpactSummaryPanel impact={impactAssessment} isLoading={replay.isLoading} />
 
         {/* Map + GIS Layers sidebar */}
         <section className="grid gap-4 lg:grid-cols-[1fr_18rem]">

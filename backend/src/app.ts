@@ -6,6 +6,7 @@ import { floodRouter } from "./api/flood.routes.js";
 import { gisRouter } from "./api/gis.routes.js";
 import { healthRouter } from "./api/health.routes.js";
 import { hazardRouter } from "./api/hazard.routes.js";
+import { impactRouter } from "./api/impact.routes.js";
 import { replayRouter } from "./api/replay.routes.js";
 import { env } from "./config/env.js";
 import { errorHandler } from "./middleware/error-handler.js";
@@ -27,6 +28,8 @@ export function createApp(): express.Express {
   app.use("/api/replay", replayRouter);
   app.use("/api/flood", floodRouter);
   app.use("/flood", floodRouter);
+  app.use("/api/impact", impactRouter);
+  app.use("/impact", impactRouter);
 
   app.use(errorHandler);
 
