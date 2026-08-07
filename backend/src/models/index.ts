@@ -20,6 +20,9 @@ export { RoutePlanModel } from "./route-plan.model.js";
 export { PlanRecommendationModel } from "./plan-recommendation.model.js";
 export { PlannerExplanationModel } from "./planner-explanation.model.js";
 export { FailureInjectionModel } from "./failure-injection.model.js";
+export { EvaluationResultModel } from "./evaluation-result.model.js";
+export { LearningReportModel } from "./learning-report.model.js";
+
 
 
 

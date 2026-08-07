@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactElement } from "react";
 import { EocMap } from "../components/EocMap";
+import { EvaluationLearningPanel } from "../components/EvaluationLearningPanel";
 import { FloodAnalysisPanel } from "../components/FloodAnalysisPanel";
 import { HumanApprovalPanel } from "../components/HumanApprovalPanel";
 import { ImpactSummaryPanel } from "../components/ImpactSummaryPanel";
@@ -11,6 +12,7 @@ import { StatusPill } from "../components/StatusPill";
 import { SystemResiliencePanel } from "../components/SystemResiliencePanel";
 import { frontendEnv } from "../config/env";
 import type { AuditEventItem } from "../approvals/approval.types";
+import type { EvaluationMetrics, LearningReportData } from "../evaluation/evaluation.types";
 import type { ChangeDetectionResponse, FloodSnapshot } from "../flood/flood.types";
 import type { ImpactAssessment } from "../impact/impact.types";
 import type { PlanRecommendation } from "../planner/planner.types";
@@ -20,6 +22,7 @@ import { useGisLayers } from "../hooks/useGisLayers";
 import { useBackendHealth } from "../hooks/useBackendHealth";
 import { useReplayController } from "../hooks/useReplayController";
 import { approveRecommendationApi, fetchApprovals, fetchAuditTimeline, rejectRecommendationApi } from "../services/approval.service";
+import { fetchEvaluationMetrics, fetchLearningReport } from "../services/evaluation.service";
 import { fetchCurrentFlood, fetchFloodChange } from "../services/flood.service";
 import { fetchImpactByTimestamp, fetchLatestImpactSummary } from "../services/impact.service";
 import { clearOfflineQueue, enqueueOfflineAction, getQueuedOfflineActions, syncOfflineQueue } from "../services/offline-queue.service";
@@ -53,6 +56,9 @@ export function HomePage(): ReactElement {
   const [activeFailures, setActiveFailures] = useState<FailureInjection[]>([]);
   const [offlineQueueCount, setOfflineQueueCount] = useState<number>(0);
 
+  const [evaluationMetrics, setEvaluationMetrics] = useState<EvaluationMetrics | null>(null);
+  const [learningReport, setLearningReport] = useState<LearningReportData | null>(null);
+
   const refreshResilienceState = () => {
     fetchResilienceHealth().then((res) => setResilienceHealth(res)).catch(() => {});
     fetchActiveFailures().then((failures) => setActiveFailures(failures)).catch(() => {});
@@ -72,7 +78,7 @@ export function HomePage(): ReactElement {
       .catch(() => {});
   };
 
-  // Fetch current flood snapshot, change detection, impact assessment & planner recommendations when replay timestamp changes
+  // Fetch current flood snapshot, change detection, impact assessment, planner recommendations & evaluation metrics
   useEffect(() => {
     fetchCurrentFlood()
       .then((res) => setFloodSnapshot(res.snapshot))
@@ -88,6 +94,14 @@ export function HomePage(): ReactElement {
 
     fetchRecommendations()
       .then((recs) => setRecommendations(recs))
+      .catch(() => {});
+
+    fetchEvaluationMetrics()
+      .then((res) => setEvaluationMetrics(res.metrics))
+      .catch(() => {});
+
+    fetchLearningReport()
+      .then((rpt) => setLearningReport(rpt))
       .catch(() => {});
 
     refreshApprovalsAndAudit();
@@ -194,7 +208,7 @@ export function HomePage(): ReactElement {
           <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">Emergency Operations Center</p>
           <h1 className="mt-2 text-3xl font-semibold">Kerala Floods 2018 Intelligence Engine</h1>
           <p className="mt-3 max-w-3xl text-base leading-7 text-zinc-700">
-            Simulation-first disaster management system with Sentinel-2 flood extent detection, spatial change analysis, impact assessment, safe evacuation routing, agentic decision planning, human approval workflow, resilience failure simulation, historical replay, and traceable infrastructure.
+            Simulation-first disaster management system with Sentinel-2 flood extent detection, spatial change analysis, impact assessment, safe evacuation routing, agentic decision planning, human approval workflow, resilience failure simulation, post-disaster evaluation learning loop, historical replay, and traceable infrastructure.
           </p>
         </div>
 
@@ -233,6 +247,13 @@ export function HomePage(): ReactElement {
           onSpeedChange={replay.setSpeed}
           onStepForward={replay.stepForward}
           onStepBackward={replay.stepBackward}
+        />
+
+        {/* Post-Disaster Evaluation & Learning Loop Panel */}
+        <EvaluationLearningPanel
+          metrics={evaluationMetrics}
+          report={learningReport}
+          isLoading={replay.isLoading}
         />
 
         {/* Resilience, Failure Simulation & Offline Sync Panel */}

@@ -4,6 +4,7 @@ import helmet from "helmet";
 import { pinoHttp } from "pino-http";
 import { approvalRouter } from "./api/approval.routes.js";
 import { auditRouter } from "./api/audit.routes.js";
+import { evaluationRouter } from "./api/evaluation.routes.js";
 import { floodRouter } from "./api/flood.routes.js";
 import { gisRouter } from "./api/gis.routes.js";
 import { healthRouter } from "./api/health.routes.js";
@@ -49,6 +50,8 @@ export function createApp(): express.Express {
   app.use("/audit", auditRouter);
   app.use("/api/simulation", simulationRouter);
   app.use("/simulation", simulationRouter);
+  app.use("/api/evaluation", evaluationRouter);
+  app.use("/evaluation", evaluationRouter);
 
   app.use(errorHandler);
 
