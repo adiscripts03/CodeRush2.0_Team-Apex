@@ -9,6 +9,7 @@ import ResponsePlanner from './pages/ResponsePlanner';
 import ActivityLog from './pages/ActivityLog';
 import AlertCentre from './pages/AlertCentre';
 import SensorMap from './pages/SensorMap';
+import SeismicMap from './pages/SeismicMap';
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
                 <Route path="/activity" element={<ActivityLog />} />
                 <Route path="/alerts" element={<AlertCentre />} />
                 <Route path="/sensor-map" element={<SensorMap />} />
+                <Route path="/seismic" element={<SeismicMap />} />
               </Routes>
             </div>
           </div>

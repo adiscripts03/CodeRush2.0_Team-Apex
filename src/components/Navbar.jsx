@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, MapPin, ClipboardCheck, History, Bell, Activity } from 'lucide-react';
+import { LayoutDashboard, MapPin, ClipboardCheck, History, Bell, Activity, Zap } from 'lucide-react';
 import { useApp } from '../state/AppContext';
 
 export default function Navbar() {
@@ -14,6 +14,7 @@ export default function Navbar() {
     { path: '/', label: 'Command Dashboard', icon: LayoutDashboard },
     { path: '/map', label: 'Command Map', icon: MapPin },
     { path: '/sensor-map', label: 'Hydro Feed', icon: Activity },
+    { path: '/seismic', label: 'Seismic Map', icon: Zap },
     {
       path: '/planner',
       label: 'Response Planner',
@@ -39,15 +40,10 @@ export default function Navbar() {
             <Activity className="w-5 h-5 font-bold" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="font-extrabold text-base text-slate-900 tracking-tight">
-                Disaster Command <span className="text-cyan-600 font-mono">v1.0</span>
-              </h1>
-              <span className="bg-amber-100 border border-amber-300 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                Historical Replay
-              </span>
-            </div>
-            <p className="text-[11px] text-slate-500">Historical Simulation & Decision Support</p>
+            <h1 className="font-extrabold text-base text-slate-900 tracking-tight">
+              Disaster Command <span className="text-cyan-600 font-mono">v1.0</span>
+            </h1>
+            <p className="text-[11px] text-slate-500">Real-Time Simulation & Decision Support Platform</p>
           </div>
         </div>
 

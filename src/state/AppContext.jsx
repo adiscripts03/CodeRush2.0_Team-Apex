@@ -51,7 +51,8 @@ export function AppProvider({ children }) {
           roadsRes,
           riversRes,
           capacitiesRes,
-          sensorsRes
+          sensorsRes,
+          seismicRes
         ] = await Promise.all([
           fetch('/data/event_timeline.json'),
           fetch('/data/hospitals.geojson'),
@@ -59,7 +60,8 @@ export function AppProvider({ children }) {
           fetch('/data/roads.geojson'),
           fetch('/data/rivers.geojson'),
           fetch('/data/shelters_capacity.json'),
-          fetch('/data/sensor_log.json')
+          fetch('/data/sensor_log.json'),
+          fetch('/data/seismic_events.json')
         ]);
 
         const timeline = await timelineRes.json();
@@ -69,6 +71,7 @@ export function AppProvider({ children }) {
         const rivers = await riversRes.json();
         const capacities = await capacitiesRes.json();
         const sensors = await sensorsRes.json();
+        const seismic = await seismicRes.json();
 
         setTimelineData(timeline);
 
@@ -85,6 +88,7 @@ export function AppProvider({ children }) {
           floodPolygon: floodGeojson,
           shelterCapacities: capacities,
           sensors,
+          seismic,
           isLoading: false,
           error: null,
         });
