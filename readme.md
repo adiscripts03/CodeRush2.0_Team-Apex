@@ -1,113 +1,61 @@
-# Disaster Management Command System — First Working Prototype
+# Disaster Management Command System
 
-> **DISCLAIMER & PROVENANCE NOTICE**: This system is a **historical simulation and replay tool** based on the extreme Kerala Floods event of August 2018 (Alappuzha and Kottayam districts). It is **NOT** a live real-time monitoring tool.
+> Historical simulation and replay tool based on the Kerala Floods of August 2018. This is not a live monitoring system.
 
----
+## Overview
 
-## 🌟 Key Features
+The app combines a React + Leaflet command center with a small Express API for alert dispatch. It focuses on flood replay, impact assessment, planning, and audit logging.
 
-1. **Detection & Hazard Replay**
-   - Interactive horizontal scrubber driven by historical satellite keyframes (`2018-08-14` onset, `2018-08-15` data gap, `2018-08-17` peak flood).
-   - Dynamic **Confidence Indicators** (numeric 0.0–1.0 and visual tags).
-   - **Data-Gap Banner Warning** explicitly alerting users when satellite coverage is unavailable and models interpolate growth.
+## Architecture
 
-2. **Evacuation Planning & Decision Support (Human-in-the-Loop)**
-   - Rule-based decision generator (`src/lib/planGenerator.js`) calculating nearest safe relief shelters with available capacity and routing vectors.
-   - **Human-in-the-Loop Framework**: Action cards require explicit commander review with **Approve**, **Edit Directives**, or **Reject** choices. Unapproved recommendations remain strictly labeled as draft directives.
+```mermaid
+flowchart LR
+  U[Commander] --> UI[React + Vite Frontend]
+  UI --> M[Map, timeline, planning, activity views]
+  UI --> A[API /api/send-alert]
+  A --> S[Express backend]
+  S --> E[Nodemailer or demo log]
+```
 
-3. **Geospatial Impact Analysis (Turf.js)**
-   - Calculates flooded surface area in hectares (matching Dartmouth Flood Observatory benchmarks: 28,737 ha to 50,119 ha peak).
-   - Identifies at-risk hospitals and submerged road networks.
+```mermaid
+flowchart TB
+  T[Historical data assets] --> F[Flood replay]
+  T --> I[Impact estimate]
+  T --> P[Plan generator]
+  T --> L[Activity log]
+  F --> C[Command Centre]
+  I --> C
+  P --> C
+  L --> C
+```
 
-4. **Activity Audit Stream**
-   - Timestamped log capturing satellite timeline scrubbing, plan generation, human approval actions, and emergency alert dispatches.
+## What it does
 
-5. **Emergency Alert Center**
-   - Minimal Express backend endpoint (`POST /api/send-alert`) for transmitting emergency transactional alerts to district response command nodes.
+- Replays flood progression with timeline scrubbing and confidence indicators.
+- Estimates impact using Turf.js and map layers for roads, rivers, shelters, and hospitals.
+- Generates evacuation guidance with human approval before action.
+- Sends emergency alerts through a minimal Express endpoint.
 
----
+## Tech Stack
 
-## 📊 Data Provenance & Credits
+- Frontend: React, Vite, Tailwind CSS, Leaflet, Recharts
+- Spatial analysis: `@turf/turf`, `react-leaflet`
+- Backend: Node.js, Express, Nodemailer
 
-- **Satellite Flood Extents**: Dartmouth Flood Observatory (DFO) / Sentinel-1 SAR observations for Kerala August 2018.
-- **Infrastructure (Hospitals, Shelters, Roads, Rivers)**: Sourced from [OpenStreetMap](https://www.openstreetmap.org/) via Overpass API under the Open Database License (ODbL).
-- **Synthetic Datasets**: Reservoir levels (`sensor_log.json`) and shelter capacity limits (`shelters_capacity.json`) are synthetic fixtures generated for operational demonstration purposes.
+## Quickstart
 
----
-
-## 🛠️ Tech Stack
-
-- **Frontend**: React (v18), Vite, Tailwind CSS, Lucide Icons, Recharts
-- **Geospatial & Mapping**: Leaflet, `react-leaflet`, `@turf/turf`
-- **Backend**: Node.js, Express, Nodemailer
-
----
-
-## 🚀 Quickstart & Installation
-
-### 1. Install Dependencies
 ```bash
 npm install
-```
-
-### 2. Start Project (Frontend + Express Backend)
-```bash
 npm run dev:all
 ```
-- **Frontend App**: `http://localhost:5173`
-- **Express Backend API**: `http://localhost:3001`
 
-### 3. Build Production Bundle
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:3001`
+
 ```bash
 npm run build
 ```
 
----
+## Data Notes
 
-## 📁 Directory Structure
-
-```
-.
-├── public/data/
-│   ├── hospitals.geojson          # Named hospitals in Alappuzha/Kottayam
-│   ├── shelters.geojson           # Schools & community centres
-│   ├── roads.geojson              # Highway & secondary road network
-│   ├── rivers.geojson             # Waterways & river vectors
-│   ├── flood_20180814.geojson     # Aug 14 satellite flood extent
-│   ├── flood_20180817.geojson     # Aug 17 peak flood extent
-│   ├── event_timeline.json        # Keyframe scrubber dataset
-│   ├── sensor_log.json            # Hydro gauge & dam capacity feed
-│   └── shelters_capacity.json     # Capacity metrics & facility specs
-├── src/
-│   ├── components/
-│   │   ├── ActivityFeedItem.jsx
-│   │   ├── AlertComposer.jsx
-│   │   ├── ConfidenceBadge.jsx
-│   │   ├── DataGapBanner.jsx
-│   │   ├── LayerToggle.jsx
-│   │   ├── MapView.jsx
-│   │   ├── Navbar.jsx
-│   │   ├── PlanCard.jsx
-│   │   └── TimelineScrubber.jsx
-│   ├── lib/
-│   │   ├── activityLogger.js      # Shared audit logger context & hook
-│   │   ├── impactEstimate.js      # Turf.js spatial analysis
-│   │   └── planGenerator.js       # Decision support algorithm
-│   ├── pages/
-│   │   ├── ActivityLog.jsx
-│   │   ├── AlertCentre.jsx
-│   │   ├── CommandCentre.jsx
-│   │   ├── CommandMap.jsx
-│   │   └── ResponsePlanner.jsx
-│   ├── state/
-│   │   └── AppContext.jsx          # Global application state
-│   ├── App.jsx
-│   ├── main.jsx
-│   └── index.css
-├── server/
-│   ├── index.js                   # Express server entry point
-│   ├── routes/sendAlert.js        # POST /api/send-alert handler
-│   └── .env.example
-├── package.json
-└── README.md
-```
+Flood extents and infrastructure layers are based on historical Kerala 2018 data; reservoir and shelter capacity fixtures are synthetic demo inputs.
