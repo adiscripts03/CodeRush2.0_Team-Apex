@@ -7,7 +7,9 @@
       "location": "Ranni / Pathanamthitta",
       "capacity_percent": 98.4,
       "discharge_rate_cumes": 1420,
-      "status": "Red Alert"
+      "status": "Red Alert",
+      "lat": 9.390,
+      "lng": 77.086
     },
     {
       "id": "RS-02",
@@ -15,7 +17,9 @@
       "location": "Upper Kuttanad",
       "capacity_percent": 96.2,
       "discharge_rate_cumes": 980,
-      "status": "Red Alert"
+      "status": "Red Alert",
+      "lat": 9.324,
+      "lng": 77.143
     },
     {
       "id": "RS-03",
@@ -23,7 +27,9 @@
       "location": "Alappuzha North",
       "capacity_percent": 112.5,
       "discharge_rate_cumes": 2800,
-      "status": "Overflowing"
+      "status": "Overflowing",
+      "lat": 9.600,
+      "lng": 76.381
     },
     {
       "id": "RS-04",
@@ -31,7 +37,9 @@
       "location": "Kottayam Town",
       "capacity_percent": 94.8,
       "discharge_rate_cumes": 1150,
-      "status": "Orange Alert"
+      "status": "Orange Alert",
+      "lat": 9.583,
+      "lng": 76.520
     }
   ]
 }

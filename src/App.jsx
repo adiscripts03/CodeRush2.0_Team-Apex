@@ -8,6 +8,7 @@ import CommandMap from './pages/CommandMap';
 import ResponsePlanner from './pages/ResponsePlanner';
 import ActivityLog from './pages/ActivityLog';
 import AlertCentre from './pages/AlertCentre';
+import SensorMap from './pages/SensorMap';
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
                 <Route path="/planner" element={<ResponsePlanner />} />
                 <Route path="/activity" element={<ActivityLog />} />
                 <Route path="/alerts" element={<AlertCentre />} />
+                <Route path="/sensor-map" element={<SensorMap />} />
               </Routes>
             </div>
           </div>
