@@ -111,72 +111,14 @@ export default function SensorMap() {
 
   return (
     <div className="flex flex-col h-screen bg-slate-50 overflow-hidden relative">
-      {/* Header Bar */}
-      <div className="absolute top-4 left-4 right-4 z-[400] flex justify-between items-start pointer-events-none">
-        
-        {/* Back Button & Title */}
-        <div className="flex flex-col gap-3 pointer-events-auto">
-          <button 
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-md border border-slate-200 text-slate-700 hover:text-cyan-700 hover:border-cyan-300 transition-all text-sm font-bold w-fit"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </button>
-
-          <div className="bg-white p-4 rounded-xl shadow-md border border-slate-200 max-w-sm">
-            <div className="flex items-center gap-2 mb-2">
-              <Activity className="w-5 h-5 text-cyan-600" />
-              <h1 className="text-lg font-extrabold text-slate-900">Hydro Sensor Network</h1>
-            </div>
-            <p className="text-xs text-slate-600">
-              Full-screen live geographic visualization of dam levels, reservoir gauges, and river stations with live condition indicators.
-            </p>
-          </div>
-
-          {conflicts.length > 0 && (
-            <div className="bg-rose-50 p-4 rounded-xl shadow-md border border-rose-200 max-w-sm">
-              <div className="flex items-center gap-2 mb-2 text-rose-700">
-                <AlertTriangle className="w-5 h-5" />
-                <h1 className="text-sm font-extrabold">Conflicting Observations</h1>
-              </div>
-              <div className="space-y-2 max-h-32 overflow-y-auto">
-                {conflicts.map((c, i) => (
-                  <div key={i} className="text-[10px] text-rose-900 leading-tight bg-white p-2 border border-rose-100 rounded">
-                    <strong>{c.s1.name}</strong> ({c.s1.status}) and <strong>{c.s2.name}</strong> ({c.s2.status}) are only <strong>{c.distance}km</strong> apart.
-                  </div>
-                ))}
-              </div>
-              <p className="text-[10px] text-rose-800 mt-2 font-semibold">
-                Resolution Policy: Defaulting to higher-severity reading pending manual ground verification.
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Legend */}
-        <div className="bg-white p-4 rounded-xl shadow-md border border-slate-200 pointer-events-auto">
-          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Status Legend</h3>
-          <div className="space-y-2.5">
-            {[
-              { label: 'Normal', status: 'Normal' },
-              { label: 'Orange Alert', status: 'Orange Alert' },
-              { label: 'Red Alert', status: 'Red Alert' },
-              { label: 'Overflowing', status: 'Overflowing' }
-            ].map((item) => {
-              const { bg, isPulsing } = getStatusColor(item.status);
-              return (
-                <div key={item.label} className="flex items-center gap-3">
-                  <div className="relative flex h-3 w-3">
-                    {isPulsing && <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${bg} opacity-75`}></span>}
-                    <span className={`relative inline-flex rounded-full h-3 w-3 ${bg}`}></span>
-                  </div>
-                  <span className="text-xs font-medium text-slate-700">{item.label}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+      <div className="absolute top-4 left-4 z-[400] pointer-events-none">
+        <button 
+          onClick={() => navigate(-1)}
+          className="pointer-events-auto flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-md border border-slate-200 text-slate-700 hover:text-cyan-700 hover:border-cyan-300 transition-all text-sm font-bold w-fit"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </button>
       </div>
 
       {/* Map Container */}

@@ -141,83 +141,14 @@ export default function SeismicMap() {
 
   return (
     <div className="flex flex-col h-screen bg-slate-900 text-slate-100 overflow-hidden relative font-sans">
-      
-      {/* Top Floating Control Bar */}
-      <div className="absolute top-4 left-4 right-4 z-[400] flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pointer-events-none">
-        
-        {/* Left Title Block */}
-        <div className="flex items-center gap-3 pointer-events-auto">
-          <button 
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 px-3.5 py-2 bg-slate-800/90 hover:bg-slate-700/90 backdrop-blur-md rounded-xl shadow-lg border border-slate-700 text-slate-200 hover:text-white transition-all text-xs font-bold"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back</span>
-          </button>
-
-          <div className="bg-slate-800/90 backdrop-blur-md px-4 py-2.5 rounded-xl shadow-lg border border-slate-700 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-rose-500/20 border border-rose-500/40 text-rose-400">
-              <Zap className="w-5 h-5 animate-pulse" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-sm font-extrabold text-white tracking-wide">Seismic Hazard & Telemetry Network</h1>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40">
-                  REAL-TIME FEEDS
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-400">Seismograph telemetric epicenters & fault line stress vectors</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Right KPI Metrics & Filter Control */}
-        <div className="flex items-center gap-2 pointer-events-auto flex-wrap">
-          <div className="bg-slate-800/90 backdrop-blur-md px-3.5 py-2 rounded-xl border border-slate-700 flex items-center gap-2 text-xs">
-            <ShieldAlert className="w-4 h-4 text-rose-400" />
-            <div>
-              <span className="text-[10px] text-slate-400 uppercase font-bold block">Max Magnitude</span>
-              <span className="font-mono font-extrabold text-rose-400">M {maxMag}</span>
-            </div>
-          </div>
-
-          <div className="bg-slate-800/90 backdrop-blur-md px-3.5 py-2 rounded-xl border border-slate-700 flex items-center gap-2 text-xs">
-            <Activity className="w-4 h-4 text-cyan-400" />
-            <div>
-              <span className="text-[10px] text-slate-400 uppercase font-bold block">Events Tracked</span>
-              <span className="font-mono font-extrabold text-cyan-400">{filteredEvents.length}</span>
-            </div>
-          </div>
-
-          {/* Filter Dropdown */}
-          <div className="bg-slate-800/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-700 flex items-center gap-2 text-xs">
-            <Filter className="w-3.5 h-3.5 text-slate-400" />
-            <select
-              value={minMagFilter}
-              onChange={(e) => setMinMagFilter(Number(e.target.value))}
-              className="bg-transparent text-slate-200 text-xs font-bold focus:outline-none cursor-pointer"
-            >
-              <option value={0} className="bg-slate-800 text-slate-200">All Magnitudes</option>
-              <option value={4.0} className="bg-slate-800 text-slate-200">M 4.0+</option>
-              <option value={5.0} className="bg-slate-800 text-slate-200">M 5.0+</option>
-              <option value={6.0} className="bg-slate-800 text-slate-200">M 6.0+ (Major)</option>
-            </select>
-          </div>
-
-          {/* Toggle Fault Lines */}
-          <button
-            onClick={() => setShowFaultLines(!showFaultLines)}
-            className={`px-3 py-2 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 ${
-              showFaultLines
-                ? 'bg-cyan-600/30 border-cyan-500/50 text-cyan-300'
-                : 'bg-slate-800/90 border-slate-700 text-slate-400'
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5" />
-            <span>Fault Lines</span>
-          </button>
-        </div>
-
+      <div className="absolute top-4 left-4 z-[400] pointer-events-none">
+        <button 
+          onClick={() => navigate(-1)}
+          className="pointer-events-auto flex items-center gap-2 px-3.5 py-2 bg-slate-800/90 hover:bg-slate-700/90 backdrop-blur-md rounded-xl shadow-lg border border-slate-700 text-slate-200 hover:text-white transition-all text-xs font-bold"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back</span>
+        </button>
       </div>
 
       {/* Main Container: Map + Event Feed Sidebar */}
