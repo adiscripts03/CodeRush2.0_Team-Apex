@@ -248,6 +248,32 @@ Query params:
 - `destLng`: Destination longitude.
 - `destLat`: Destination latitude.
 
+## `POST /planner/run` (alias `/api/planner/run`)
+
+Executes the 5-stage decision loop (Observe -> Estimate -> Explain -> Plan -> Review) and generates evidence-backed recommendations.
+
+Request body:
+
+```json
+{
+  "timestamp": "2018-08-15T06:00:00.000Z"
+}
+```
+
+Response: `200 OK` with `DecisionLoopRunOutput`.
+
+## `GET /planner/recommendations` (alias `/api/planner/recommendations`)
+
+Returns list of active recommendations.
+
+Query params:
+- `timestamp`: Optional ISO 8601 datetime string.
+
+## `GET /planner/explanation/:id` (alias `/api/planner/explanation/:id`)
+
+Returns detailed reasoning trace, evidence, and decision loop explanation for a recommendation ID.
+
+
 
 
 

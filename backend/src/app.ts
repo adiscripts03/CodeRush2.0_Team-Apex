@@ -7,6 +7,7 @@ import { gisRouter } from "./api/gis.routes.js";
 import { healthRouter } from "./api/health.routes.js";
 import { hazardRouter } from "./api/hazard.routes.js";
 import { impactRouter } from "./api/impact.routes.js";
+import { plannerRouter } from "./api/planner.routes.js";
 import { replayRouter } from "./api/replay.routes.js";
 import { resourceRouter } from "./api/resource.routes.js";
 import { routeRouter } from "./api/route.routes.js";
@@ -36,6 +37,8 @@ export function createApp(): express.Express {
   app.use("/resources", resourceRouter);
   app.use("/api/routes", routeRouter);
   app.use("/routes", routeRouter);
+  app.use("/api/planner", plannerRouter);
+  app.use("/planner", plannerRouter);
 
   app.use(errorHandler);
 

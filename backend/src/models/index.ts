@@ -17,6 +17,9 @@ export { ResourceModel } from "./resource.model.js";
 export { VehicleModel } from "./vehicle.model.js";
 export { ShelterCapacityModel } from "./shelter-capacity.model.js";
 export { RoutePlanModel } from "./route-plan.model.js";
+export { PlanRecommendationModel } from "./plan-recommendation.model.js";
+export { PlannerExplanationModel } from "./planner-explanation.model.js";
+
 
 
 

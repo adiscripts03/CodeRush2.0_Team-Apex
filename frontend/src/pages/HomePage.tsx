@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactElement } from "react";
 import { EocMap } from "../components/EocMap";
 import { FloodAnalysisPanel } from "../components/FloodAnalysisPanel";
 import { ImpactSummaryPanel } from "../components/ImpactSummaryPanel";
+import { PlannerDecisionPanel } from "../components/PlannerDecisionPanel";
 import { ReplayControls } from "../components/ReplayControls";
 import { ResourceInventoryPanel } from "../components/ResourceInventoryPanel";
 import { SnapshotPanel } from "../components/SnapshotPanel";
@@ -9,12 +10,14 @@ import { StatusPill } from "../components/StatusPill";
 import { frontendEnv } from "../config/env";
 import type { ChangeDetectionResponse, FloodSnapshot } from "../flood/flood.types";
 import type { ImpactAssessment } from "../impact/impact.types";
+import type { PlanRecommendation } from "../planner/planner.types";
 import type { Resource, RoutePlan, ShelterCapacity, Vehicle } from "../resources/resource.types";
 import { useGisLayers } from "../hooks/useGisLayers";
 import { useBackendHealth } from "../hooks/useBackendHealth";
 import { useReplayController } from "../hooks/useReplayController";
 import { fetchCurrentFlood, fetchFloodChange } from "../services/flood.service";
 import { fetchImpactByTimestamp, fetchLatestImpactSummary } from "../services/impact.service";
+import { fetchRecommendations, runPlannerApi } from "../services/planner.service";
 import { fetchEvacuationRoute, fetchResources } from "../services/resource.service";
 import { formatMongoStatus } from "../services/health.service";
 
@@ -34,7 +37,9 @@ export function HomePage(): ReactElement {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [activeRoute, setActiveRoute] = useState<RoutePlan | null>(null);
 
-  // Fetch current flood snapshot, change detection & impact assessment when replay timestamp changes
+  const [recommendations, setRecommendations] = useState<PlanRecommendation[]>([]);
+
+  // Fetch current flood snapshot, change detection, impact assessment & planner recommendations when replay timestamp changes
   useEffect(() => {
     fetchCurrentFlood()
       .then((res) => setFloodSnapshot(res.snapshot))
@@ -48,6 +53,10 @@ export function HomePage(): ReactElement {
       })
       .catch(() => {});
 
+    fetchRecommendations()
+      .then((recs) => setRecommendations(recs))
+      .catch(() => {});
+
     if (replay.activeSnapshot?.timestamp) {
       fetchFloodChange(replay.activeSnapshot.timestamp)
         .then((res) => setChangeData(res))
@@ -58,8 +67,18 @@ export function HomePage(): ReactElement {
         .catch(() => {
           fetchLatestImpactSummary().then((res) => setImpactAssessment(res)).catch(() => {});
         });
+
+      fetchRecommendations(replay.activeSnapshot.timestamp)
+        .then((recs) => setRecommendations(recs))
+        .catch(() => {});
     }
   }, [replay.activeSnapshot]);
+
+  const handleRunPlanner = () => {
+    runPlannerApi(replay.activeSnapshot?.timestamp)
+      .then((res) => setRecommendations(res.recommendations))
+      .catch(() => {});
+  };
 
   const handleGenerateRoute = (lng: number, lat: number) => {
     fetchEvacuationRoute(lng, lat, 50)
@@ -78,7 +97,7 @@ export function HomePage(): ReactElement {
           <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">Emergency Operations Center</p>
           <h1 className="mt-2 text-3xl font-semibold">Kerala Floods 2018 Intelligence Engine</h1>
           <p className="mt-3 max-w-3xl text-base leading-7 text-zinc-700">
-            Simulation-first disaster management system with Sentinel-2 flood extent detection, spatial change analysis, impact assessment, safe evacuation routing, historical replay, and traceable infrastructure.
+            Simulation-first disaster management system with Sentinel-2 flood extent detection, spatial change analysis, impact assessment, safe evacuation routing, agentic decision planning, historical replay, and traceable infrastructure.
           </p>
         </div>
 
@@ -117,6 +136,13 @@ export function HomePage(): ReactElement {
           onSpeedChange={replay.setSpeed}
           onStepForward={replay.stepForward}
           onStepBackward={replay.stepBackward}
+        />
+
+        {/* Agentic Decision Planner Panel */}
+        <PlannerDecisionPanel
+          recommendations={recommendations}
+          isLoading={replay.isLoading}
+          onRunPlanner={handleRunPlanner}
         />
 
         {/* Flood Detection & Change Intelligence Panel */}

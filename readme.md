@@ -14,20 +14,22 @@ Milestone 5 implements the Impact Assessment Engine: intersecting flood extent p
 
 Milestone 6 implements the Resource Inventory & Evacuation Routing Engine: disaster asset tracking (rescue boats, ambulances, medical teams, food stock), shelter capacity manager, flood-aware waypoint-bypass routing, safety status calculation (`safe`, `caution`, `blocked`), Mapbox safe route rendering, and resource/route APIs (`/resources`, `/resources/update`, `/routes/evacuation`, `/routes/safe`).
 
+Milestone 7 implements the Agentic Decision Planner Engine: 5-stage decision loop (Observe -> Estimate -> Explain -> Plan -> Review), 6 recommendation action types (open shelters, deploy rescue boats, close roads, send medical teams, prioritize districts, schedule reviews), reasoning traces, linked evidence metrics, confidence scoring, constraint checking, evaluated alternatives, and planner APIs (`/planner/run`, `/planner/recommendations`, `/planner/explanation/:id`).
+
 ## Architecture
 
 The system follows the core decision loop:
 
 Observe -> Estimate -> Explain uncertainty -> Plan within constraints -> Human approval -> Simulation execution -> Evaluation -> Learning report -> Observe again
 
-Milestone 1 creates the traceable substrate. Milestone 2 adds GIS base layers. Milestone 3 provides time-aware historical replay. Milestone 4 provides satellite flood extent detection & spatial change analysis. Milestone 5 provides real-time impact assessment & severity evaluation. Milestone 6 provides resource inventory management & flood-aware safe evacuation routing.
+Milestone 1 creates the traceable substrate. Milestone 2 adds GIS base layers. Milestone 3 provides time-aware historical replay. Milestone 4 provides satellite flood extent detection & spatial change analysis. Milestone 5 provides real-time impact assessment & severity evaluation. Milestone 6 provides resource inventory management & flood-aware safe evacuation routing. Milestone 7 provides explainable agentic decision planning.
 
 Floods are represented as the first hazard module under `backend/src/hazards/flood`. Future hazards must register through the same module boundary instead of changing core infrastructure.
 
 ## Workspace
 
-- `backend`: Express, TypeScript, MongoDB/Mongoose, audit logging, health checks, GIS, replay, flood detection, impact assessment, resource routing.
-- `frontend`: React, TypeScript, Vite, TailwindCSS, Mapbox visualizer, replay controls, flood intelligence panel, impact summary panel, resource inventory panel.
+- `backend`: Express, TypeScript, MongoDB/Mongoose, audit logging, health checks, GIS, replay, flood detection, impact assessment, resource routing, agentic planner.
+- `frontend`: React, TypeScript, Vite, TailwindCSS, Mapbox visualizer, replay controls, flood intelligence panel, impact summary panel, resource inventory panel, planner decision panel.
 - `docs`: milestone architecture, schema, API, setup, ADRs, and acceptance criteria.
 
 ## Quick Start
