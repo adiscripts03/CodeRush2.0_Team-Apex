@@ -1,10 +1,11 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { ActivityLogProvider } from './lib/activityLogger';
 import { AppProvider, useApp } from './state/AppContext';
 import Navbar from './components/Navbar';
 import CommandCentre from './pages/CommandCentre';
 import CommandMap from './pages/CommandMap';
+import NewStuffApp from './newstuff/App';
 import ResponsePlanner from './pages/ResponsePlanner';
 import ActivityLog from './pages/ActivityLog';
 import AlertCentre from './pages/AlertCentre';
@@ -14,6 +15,18 @@ import EvaluationReport from './pages/EvaluationReport';
 
 function MainLayout() {
   const { isSidebarExpanded } = useApp();
+  const location = useLocation();
+
+  if (location.pathname === '/' || location.pathname === '/map') {
+    return (
+      <div className="h-screen w-screen overflow-hidden bg-slate-950 text-slate-100">
+        <Routes>
+          <Route path="/" element={<NewStuffApp initialView="landing" />} />
+          <Route path="/map" element={<NewStuffApp initialView="public" />} />
+        </Routes>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-row selection:bg-cyan-500 selection:text-white">
