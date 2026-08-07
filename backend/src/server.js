@@ -29,14 +29,30 @@ const startServer = async () => {
     console.warn('⚠️ MONGO_URI is missing. Running without database connection for now.');
   }
 
-  // Start listening
-  server.listen(env.port, () => {
-    console.log(`
-      🚀 Server is running on port ${env.port}
-      🌍 Environment: ${env.nodeEnv}
-      ✅ Health check: http://localhost:${env.port}/health
-    `);
-  });
+  const startListening = (port) => {
+    const onError = (error) => {
+      if ((error.code === 'EADDRINUSE' || error.code === 'EPERM') && port < 5020) {
+        const nextPort = port + 1;
+        console.warn(`⚠️ Port ${port} is unavailable (${error.code}). Trying ${nextPort} instead...`);
+        server.removeListener('error', onError);
+        server.close(() => startListening(nextPort));
+      } else {
+        throw error;
+      }
+    };
+
+    server.on('error', onError);
+
+    server.listen(port, env.host, () => {
+      console.log(`
+        🚀 Server is running on port ${port}
+        🌍 Environment: ${env.nodeEnv}
+        ✅ Health check: http://${env.host}:${port}/health
+      `);
+    });
+  };
+
+  startListening(Number(env.port));
 };
 
 startServer();

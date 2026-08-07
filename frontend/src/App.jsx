@@ -17,12 +17,16 @@ function MainLayout() {
   const { isSidebarExpanded } = useApp();
   const location = useLocation();
 
-  if (location.pathname === '/' || location.pathname === '/map') {
+  const fullBleedRoutes = ['/sensor-map', '/seismic'];
+
+  if (location.pathname === '/' || location.pathname === '/map' || fullBleedRoutes.includes(location.pathname)) {
     return (
       <div className="h-screen w-screen overflow-hidden bg-slate-950 text-slate-100">
         <Routes>
           <Route path="/" element={<NewStuffApp initialView="landing" />} />
           <Route path="/map" element={<CommandMap />} />
+          <Route path="/sensor-map" element={<SensorMap />} />
+          <Route path="/seismic" element={<SeismicMap />} />
         </Routes>
       </div>
     );
