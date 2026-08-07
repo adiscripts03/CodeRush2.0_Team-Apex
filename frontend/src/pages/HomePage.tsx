@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactElement } from "react";
 import { EocMap } from "../components/EocMap";
 import { FloodAnalysisPanel } from "../components/FloodAnalysisPanel";
+import { HumanApprovalPanel } from "../components/HumanApprovalPanel";
 import { ImpactSummaryPanel } from "../components/ImpactSummaryPanel";
 import { PlannerDecisionPanel } from "../components/PlannerDecisionPanel";
 import { ReplayControls } from "../components/ReplayControls";
@@ -8,6 +9,7 @@ import { ResourceInventoryPanel } from "../components/ResourceInventoryPanel";
 import { SnapshotPanel } from "../components/SnapshotPanel";
 import { StatusPill } from "../components/StatusPill";
 import { frontendEnv } from "../config/env";
+import type { AuditEventItem } from "../approvals/approval.types";
 import type { ChangeDetectionResponse, FloodSnapshot } from "../flood/flood.types";
 import type { ImpactAssessment } from "../impact/impact.types";
 import type { PlanRecommendation } from "../planner/planner.types";
@@ -15,6 +17,7 @@ import type { Resource, RoutePlan, ShelterCapacity, Vehicle } from "../resources
 import { useGisLayers } from "../hooks/useGisLayers";
 import { useBackendHealth } from "../hooks/useBackendHealth";
 import { useReplayController } from "../hooks/useReplayController";
+import { approveRecommendationApi, fetchApprovals, fetchAuditTimeline, rejectRecommendationApi } from "../services/approval.service";
 import { fetchCurrentFlood, fetchFloodChange } from "../services/flood.service";
 import { fetchImpactByTimestamp, fetchLatestImpactSummary } from "../services/impact.service";
 import { fetchRecommendations, runPlannerApi } from "../services/planner.service";
@@ -38,6 +41,22 @@ export function HomePage(): ReactElement {
   const [activeRoute, setActiveRoute] = useState<RoutePlan | null>(null);
 
   const [recommendations, setRecommendations] = useState<PlanRecommendation[]>([]);
+  const [pendingApprovals, setPendingApprovals] = useState<PlanRecommendation[]>([]);
+  const [historyApprovals, setHistoryApprovals] = useState<PlanRecommendation[]>([]);
+  const [auditEvents, setAuditEvents] = useState<AuditEventItem[]>([]);
+
+  const refreshApprovalsAndAudit = () => {
+    fetchApprovals()
+      .then((res) => {
+        setPendingApprovals(res.pending);
+        setHistoryApprovals(res.history);
+      })
+      .catch(() => {});
+
+    fetchAuditTimeline(50)
+      .then((res) => setAuditEvents(res.events))
+      .catch(() => {});
+  };
 
   // Fetch current flood snapshot, change detection, impact assessment & planner recommendations when replay timestamp changes
   useEffect(() => {
@@ -56,6 +75,8 @@ export function HomePage(): ReactElement {
     fetchRecommendations()
       .then((recs) => setRecommendations(recs))
       .catch(() => {});
+
+    refreshApprovalsAndAudit();
 
     if (replay.activeSnapshot?.timestamp) {
       fetchFloodChange(replay.activeSnapshot.timestamp)
@@ -76,7 +97,22 @@ export function HomePage(): ReactElement {
 
   const handleRunPlanner = () => {
     runPlannerApi(replay.activeSnapshot?.timestamp)
-      .then((res) => setRecommendations(res.recommendations))
+      .then((res) => {
+        setRecommendations(res.recommendations);
+        refreshApprovalsAndAudit();
+      })
+      .catch(() => {});
+  };
+
+  const handleApprove = (recommendationId: string) => {
+    approveRecommendationApi(recommendationId)
+      .then(() => refreshApprovalsAndAudit())
+      .catch(() => {});
+  };
+
+  const handleReject = (recommendationId: string, reason: string) => {
+    rejectRecommendationApi(recommendationId, reason)
+      .then(() => refreshApprovalsAndAudit())
       .catch(() => {});
   };
 
@@ -97,7 +133,7 @@ export function HomePage(): ReactElement {
           <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">Emergency Operations Center</p>
           <h1 className="mt-2 text-3xl font-semibold">Kerala Floods 2018 Intelligence Engine</h1>
           <p className="mt-3 max-w-3xl text-base leading-7 text-zinc-700">
-            Simulation-first disaster management system with Sentinel-2 flood extent detection, spatial change analysis, impact assessment, safe evacuation routing, agentic decision planning, historical replay, and traceable infrastructure.
+            Simulation-first disaster management system with Sentinel-2 flood extent detection, spatial change analysis, impact assessment, safe evacuation routing, agentic decision planning, human approval workflow, historical replay, and traceable infrastructure.
           </p>
         </div>
 
@@ -136,6 +172,16 @@ export function HomePage(): ReactElement {
           onSpeedChange={replay.setSpeed}
           onStepForward={replay.stepForward}
           onStepBackward={replay.stepBackward}
+        />
+
+        {/* Human Approval Workflow & Audit Trail Panel */}
+        <HumanApprovalPanel
+          pendingList={pendingApprovals}
+          historyList={historyApprovals}
+          auditEvents={auditEvents}
+          isLoading={replay.isLoading}
+          onApprove={handleApprove}
+          onReject={handleReject}
         />
 
         {/* Agentic Decision Planner Panel */}

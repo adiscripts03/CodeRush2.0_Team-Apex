@@ -273,6 +273,52 @@ Query params:
 
 Returns detailed reasoning trace, evidence, and decision loop explanation for a recommendation ID.
 
+## `GET /approvals` (alias `/api/approvals`)
+
+Returns list of pending and history recommendations and human approval records.
+
+Query params:
+- `status`: Optional status string (`proposed`, `approved`, `rejected`, `executed`).
+
+## `POST /approvals/approve` (alias `/api/approvals/approve` and `POST /approvals/:id/approve`)
+
+Approves a recommendation and triggers action execution side-effects.
+
+Request body:
+
+```json
+{
+  "recommendationId": "REC_SHELTER_1534312800000",
+  "approvedBy": "Commander Sarah",
+  "rationale": "Urgent shelter opening required"
+}
+```
+
+## `POST /approvals/reject` (alias `/api/approvals/reject` and `POST /approvals/:id/reject`)
+
+Rejects a recommendation with mandatory rejection reason.
+
+Request body:
+
+```json
+{
+  "recommendationId": "REC_SHELTER_1534312800000",
+  "rejectedBy": "Commander Sarah",
+  "rejectionReason": "Sufficient capacity exists in adjacent shelter"
+}
+```
+
+## `GET /audit/timeline` (alias `/api/audit/timeline`)
+
+Returns chronologically sorted list of audit event entries.
+
+Query params:
+- `limit`: Optional number (default: 50).
+- `eventType`: Optional event type filter.
+- `startDate`: Optional ISO 8601 datetime string.
+- `endDate`: Optional ISO 8601 datetime string.
+
+
 
 
 

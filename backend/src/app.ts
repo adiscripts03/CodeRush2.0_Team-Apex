@@ -2,6 +2,8 @@ import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import { pinoHttp } from "pino-http";
+import { approvalRouter } from "./api/approval.routes.js";
+import { auditRouter } from "./api/audit.routes.js";
 import { floodRouter } from "./api/flood.routes.js";
 import { gisRouter } from "./api/gis.routes.js";
 import { healthRouter } from "./api/health.routes.js";
@@ -39,6 +41,10 @@ export function createApp(): express.Express {
   app.use("/routes", routeRouter);
   app.use("/api/planner", plannerRouter);
   app.use("/planner", plannerRouter);
+  app.use("/api/approvals", approvalRouter);
+  app.use("/approvals", approvalRouter);
+  app.use("/api/audit", auditRouter);
+  app.use("/audit", auditRouter);
 
   app.use(errorHandler);
 
