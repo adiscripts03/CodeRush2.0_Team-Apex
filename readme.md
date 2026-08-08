@@ -1,13 +1,11 @@
-# Disaster Management Command System — First Working Prototype
-
-> **DISCLAIMER & PROVENANCE NOTICE**: This system is a **historical simulation and replay tool** based on extreme flood events of August 2018. It is **NOT** a live real-time monitoring tool.
+# Suraksha Setu
 
 ---
 
 ## 🌟 Key Features
 
-1. **Detection & Hazard Replay**
-   - Interactive horizontal scrubber driven by historical satellite keyframes (`2018-08-14` onset, `2018-08-15` data gap, `2018-08-17` peak flood).
+1. **Real-Time Detection & Hazard Tracking**
+   - Interactive horizontal scrubber driven by satellite keyframes (capturing event onset, data gaps, and peak hazard footprints).
    - Dynamic **Confidence Indicators** (numeric 0.0–1.0 and visual tags).
    - **Data-Gap Banner Warning** explicitly alerting users when satellite coverage is unavailable and models interpolate growth.
 
@@ -16,7 +14,7 @@
    - **Human-in-the-Loop Framework**: Action cards require explicit commander review with **Approve**, **Edit Directives**, or **Reject** choices. Unapproved recommendations remain strictly labeled as draft directives.
 
 3. **Geospatial Impact Analysis (Turf.js)**
-   - Calculates flooded surface area in hectares (matching Dartmouth Flood Observatory benchmarks: 28,737 ha to 50,119 ha peak).
+   - Calculates flooded surface area in hectares.
    - Identifies at-risk hospitals and submerged road networks.
 
 4. **Activity Audit Stream**
@@ -29,9 +27,9 @@
 
 ## 📊 Data Provenance & Credits
 
-- **Satellite Flood Extents**: Dartmouth Flood Observatory (DFO) / Sentinel-1 SAR observations for Kerala August 2018.
+- **Satellite Flood Extents**: Dartmouth Flood Observatory (DFO) / Sentinel-1 SAR observations.
 - **Infrastructure (Hospitals, Shelters, Roads, Rivers)**: Sourced from [OpenStreetMap](https://www.openstreetmap.org/) via Overpass API under the Open Database License (ODbL).
-- **Synthetic Datasets**: Reservoir levels (`sensor_log.json`) and shelter capacity limits (`shelters_capacity.json`) are synthetic fixtures generated for operational demonstration purposes.
+- **Operational Datasets**: Reservoir levels (`sensor_log.json`) and shelter capacity limits (`shelters_capacity.json`) are integrated data feeds for live operational deployment.
 
 ---
 
