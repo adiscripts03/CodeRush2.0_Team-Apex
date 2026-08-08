@@ -67,7 +67,10 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for the full hosting walkthrough.
 
 ---
 
-      flowchart TB
+## 🏗️ System Architecture
+
+```mermaid
+flowchart TB
     USER["Emergency Commander"]
 
     subgraph FRONTEND["React + Vite Command Interface"]
@@ -121,16 +124,20 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for the full hosting walkthrough.
     IMPACT --> CC
     PLAN --> RP
 
-    USER --> RP
     RP --> AUDIT
     TS --> AUDIT
-    USER --> AC
     AC --> API
     API --> MAIL
 
     AUDIT --> AL
+```
 
-      flowchart TD
+---
+
+## 🔄 End-to-End Disaster Response Workflow
+
+```mermaid
+flowchart TD
     START["Historical Disaster Event"] --> DATA["Load Historical Data"]
 
     DATA --> SAT["Satellite Flood Extent"]
@@ -139,21 +146,21 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for the full hosting walkthrough.
     DATA --> SHELTER["Shelter Capacity Data"]
 
     SAT --> TIME["Timeline Scrubber"]
-    
+
     TIME --> CHECK{"Satellite Data Available?"}
 
     CHECK -->|Yes| FLOOD["Display Observed Flood Extent"]
     CHECK -->|No| GAP["Display Data-Gap Warning"]
-    
+
     GAP --> INTERP["Interpolate Flood Growth"]
     INTERP --> CONF["Lower Confidence"]
 
     FLOOD --> CONF2["Calculate Confidence"]
-    
-    CONF --> IMPACT
+
+    CONF --> IMPACT["Geospatial Impact Analysis"]
     CONF2 --> IMPACT
 
-    IMPACT["Geospatial Impact Analysis"] --> AREA["Flooded Area"]
+    IMPACT --> AREA["Flooded Area"]
     IMPACT --> HOSP["At-Risk Hospitals"]
     IMPACT --> ROADS["Affected Roads"]
 
@@ -182,67 +189,16 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for the full hosting walkthrough.
     TIME --> LOG
 
     LOG --> ACTIVITY["Activity Audit Stream"]
+```
 
-    flowchart TD
-    START["Historical Disaster Event"] --> DATA["Load Historical Data"]
+---
 
-    DATA --> SAT["Satellite Flood Extent"]
-    DATA --> INFRA["Infrastructure Data"]
-    DATA --> SENSOR["Sensor / Reservoir Data"]
-    DATA --> SHELTER["Shelter Capacity Data"]
+## 👤 Human-in-the-Loop Decision Workflow
 
-    SAT --> TIME["Timeline Scrubber"]
-    
-    TIME --> CHECK{"Satellite Data Available?"}
-
-    CHECK -->|Yes| FLOOD["Display Observed Flood Extent"]
-    CHECK -->|No| GAP["Display Data-Gap Warning"]
-    
-    GAP --> INTERP["Interpolate Flood Growth"]
-    INTERP --> CONF["Lower Confidence"]
-
-    FLOOD --> CONF2["Calculate Confidence"]
-    
-    CONF --> IMPACT
-    CONF2 --> IMPACT
-
-    IMPACT["Geospatial Impact Analysis"] --> AREA["Flooded Area"]
-    IMPACT --> HOSP["At-Risk Hospitals"]
-    IMPACT --> ROADS["Affected Roads"]
-
-    AREA --> PLAN["Generate Response Plan"]
-    HOSP --> PLAN
-    ROADS --> PLAN
-    SHELTER --> PLAN
-
-    PLAN --> ROUTE["Find Suitable Shelters<br/>and Routing Options"]
-
-    ROUTE --> REVIEW{"Commander Review"}
-
-    REVIEW -->|Edit| EDIT["Edit Directives"]
-    EDIT --> REVIEW
-
-    REVIEW -->|Reject| REJECT["Reject Recommendation"]
-    REVIEW -->|Approve| APPROVE["Approve Directive"]
-
-    APPROVE --> ALERT["Emergency Alert"]
-    ALERT --> API["Express Alert API"]
-    API --> DISPATCH["Dispatch to Response Node"]
-
-    REJECT --> LOG["Audit Activity"]
-    DISPATCH --> LOG
-    REVIEW --> LOG
-    TIME --> LOG
-
-    LOG --> ACTIVITY["Activity Audit Stream"]
-
-
-
-
-
-      flowchart LR
+```mermaid
+flowchart LR
     DATA["Flood + Infrastructure<br/>Data"]
-    
+
     DATA --> ANALYSIS["Impact Analysis"]
     ANALYSIS --> ENGINE["Rule-Based<br/>Decision Generator"]
 
@@ -263,8 +219,40 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for the full hosting walkthrough.
     ALERT --> AUDIT
 
     DRAFT -.->|"Never automatically executed"| ALERT
+```
 
-    AUDIT["Timestamped Activity Log"]
+---
+
+## 📡 Historical Hazard Replay
+
+```mermaid
+sequenceDiagram
+    actor Commander
+    participant UI as Timeline Scrubber
+    participant Data as Historical Dataset
+    participant Analysis as Impact Analysis
+    participant Map as Command Map
+    participant Audit as Activity Logger
+
+    Commander->>UI: Select historical date
+    UI->>Data: Request keyframe
+
+    alt Satellite data available
+        Data-->>UI: Observed flood extent
+        UI->>Analysis: Calculate impact
+        Analysis-->>Map: Flood extent + affected assets
+        Map-->>Commander: Display observed conditions
+    else Data gap
+        Data-->>UI: No satellite coverage
+        UI-->>Commander: Show data-gap warning
+        UI->>Analysis: Interpolate flood growth
+        Analysis-->>Map: Estimated conditions
+        Map-->>Commander: Display lower-confidence estimate
+    end
+
+    UI->>Audit: Record timeline interaction
+    Analysis->>Audit: Record analysis result
+```
 
 ## 📁 Directory Structure
 
