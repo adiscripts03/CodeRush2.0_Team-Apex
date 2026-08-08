@@ -67,6 +67,205 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for the full hosting walkthrough.
 
 ---
 
+      flowchart TB
+    USER["Emergency Commander"]
+
+    subgraph FRONTEND["React + Vite Command Interface"]
+        CC["Command Centre"]
+        MAP["Command Map"]
+        RP["Response Planner"]
+        AC["Alert Centre"]
+        AL["Activity Log"]
+        TS["Timeline Scrubber"]
+    end
+
+    subgraph DATA["Historical & Operational Data"]
+        SAT["Historical Satellite Flood Extents"]
+        INFRA["Infrastructure GeoJSON<br/>Hospitals / Shelters / Roads / Rivers"]
+        SENSOR["Synthetic Sensor Data"]
+        CAP["Shelter Capacity Data"]
+        TIMELINE["Event Timeline"]
+    end
+
+    subgraph ENGINE["Decision & Analysis Layer"]
+        IMPACT["Turf.js Impact Analysis"]
+        PLAN["Rule-Based Plan Generator"]
+        CONF["Confidence / Data-Gap Logic"]
+        AUDIT["Activity Logger"]
+    end
+
+    subgraph BACKEND["Express Backend"]
+        API["POST /api/send-alert"]
+        MAIL["Transactional Alert Service"]
+    end
+
+    USER --> CC
+    USER --> MAP
+    USER --> RP
+    USER --> AC
+    USER --> AL
+
+    TS --> TIMELINE
+    TIMELINE --> CONF
+    SAT --> MAP
+    SAT --> CONF
+
+    INFRA --> MAP
+    INFRA --> IMPACT
+    SENSOR --> IMPACT
+    CAP --> PLAN
+    INFRA --> PLAN
+    IMPACT --> PLAN
+
+    CONF --> CC
+    IMPACT --> CC
+    PLAN --> RP
+
+    USER --> RP
+    RP --> AUDIT
+    TS --> AUDIT
+    USER --> AC
+    AC --> API
+    API --> MAIL
+
+    AUDIT --> AL
+
+      flowchart TD
+    START["Historical Disaster Event"] --> DATA["Load Historical Data"]
+
+    DATA --> SAT["Satellite Flood Extent"]
+    DATA --> INFRA["Infrastructure Data"]
+    DATA --> SENSOR["Sensor / Reservoir Data"]
+    DATA --> SHELTER["Shelter Capacity Data"]
+
+    SAT --> TIME["Timeline Scrubber"]
+    
+    TIME --> CHECK{"Satellite Data Available?"}
+
+    CHECK -->|Yes| FLOOD["Display Observed Flood Extent"]
+    CHECK -->|No| GAP["Display Data-Gap Warning"]
+    
+    GAP --> INTERP["Interpolate Flood Growth"]
+    INTERP --> CONF["Lower Confidence"]
+
+    FLOOD --> CONF2["Calculate Confidence"]
+    
+    CONF --> IMPACT
+    CONF2 --> IMPACT
+
+    IMPACT["Geospatial Impact Analysis"] --> AREA["Flooded Area"]
+    IMPACT --> HOSP["At-Risk Hospitals"]
+    IMPACT --> ROADS["Affected Roads"]
+
+    AREA --> PLAN["Generate Response Plan"]
+    HOSP --> PLAN
+    ROADS --> PLAN
+    SHELTER --> PLAN
+
+    PLAN --> ROUTE["Find Suitable Shelters<br/>and Routing Options"]
+
+    ROUTE --> REVIEW{"Commander Review"}
+
+    REVIEW -->|Edit| EDIT["Edit Directives"]
+    EDIT --> REVIEW
+
+    REVIEW -->|Reject| REJECT["Reject Recommendation"]
+    REVIEW -->|Approve| APPROVE["Approve Directive"]
+
+    APPROVE --> ALERT["Emergency Alert"]
+    ALERT --> API["Express Alert API"]
+    API --> DISPATCH["Dispatch to Response Node"]
+
+    REJECT --> LOG["Audit Activity"]
+    DISPATCH --> LOG
+    REVIEW --> LOG
+    TIME --> LOG
+
+    LOG --> ACTIVITY["Activity Audit Stream"]
+
+    flowchart TD
+    START["Historical Disaster Event"] --> DATA["Load Historical Data"]
+
+    DATA --> SAT["Satellite Flood Extent"]
+    DATA --> INFRA["Infrastructure Data"]
+    DATA --> SENSOR["Sensor / Reservoir Data"]
+    DATA --> SHELTER["Shelter Capacity Data"]
+
+    SAT --> TIME["Timeline Scrubber"]
+    
+    TIME --> CHECK{"Satellite Data Available?"}
+
+    CHECK -->|Yes| FLOOD["Display Observed Flood Extent"]
+    CHECK -->|No| GAP["Display Data-Gap Warning"]
+    
+    GAP --> INTERP["Interpolate Flood Growth"]
+    INTERP --> CONF["Lower Confidence"]
+
+    FLOOD --> CONF2["Calculate Confidence"]
+    
+    CONF --> IMPACT
+    CONF2 --> IMPACT
+
+    IMPACT["Geospatial Impact Analysis"] --> AREA["Flooded Area"]
+    IMPACT --> HOSP["At-Risk Hospitals"]
+    IMPACT --> ROADS["Affected Roads"]
+
+    AREA --> PLAN["Generate Response Plan"]
+    HOSP --> PLAN
+    ROADS --> PLAN
+    SHELTER --> PLAN
+
+    PLAN --> ROUTE["Find Suitable Shelters<br/>and Routing Options"]
+
+    ROUTE --> REVIEW{"Commander Review"}
+
+    REVIEW -->|Edit| EDIT["Edit Directives"]
+    EDIT --> REVIEW
+
+    REVIEW -->|Reject| REJECT["Reject Recommendation"]
+    REVIEW -->|Approve| APPROVE["Approve Directive"]
+
+    APPROVE --> ALERT["Emergency Alert"]
+    ALERT --> API["Express Alert API"]
+    API --> DISPATCH["Dispatch to Response Node"]
+
+    REJECT --> LOG["Audit Activity"]
+    DISPATCH --> LOG
+    REVIEW --> LOG
+    TIME --> LOG
+
+    LOG --> ACTIVITY["Activity Audit Stream"]
+
+
+
+
+
+      flowchart LR
+    DATA["Flood + Infrastructure<br/>Data"]
+    
+    DATA --> ANALYSIS["Impact Analysis"]
+    ANALYSIS --> ENGINE["Rule-Based<br/>Decision Generator"]
+
+    ENGINE --> DRAFT["Draft Response Directive"]
+
+    DRAFT --> REVIEW["Emergency Commander"]
+
+    REVIEW --> DECISION{"Commander Decision"}
+
+    DECISION -->|Approve| APPROVED["Approved Directive"]
+    DECISION -->|Edit| EDIT["Edit Directive"]
+    DECISION -->|Reject| REJECTED["Rejected Directive"]
+
+    EDIT --> REVIEW
+
+    APPROVED --> ALERT["Dispatch Emergency Alert"]
+    REJECTED --> AUDIT["Audit Log"]
+    ALERT --> AUDIT
+
+    DRAFT -.->|"Never automatically executed"| ALERT
+
+    AUDIT["Timestamped Activity Log"]
+
 ## 📁 Directory Structure
 
 ```
