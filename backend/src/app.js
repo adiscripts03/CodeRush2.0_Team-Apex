@@ -28,7 +28,7 @@ app.get('/health', (req, res) => {
 });
 
 // Apply x402 payment wrapper to all API routes
-app.use('/api', x402Middleware);
+app.use('/xapi', x402Middleware);
 
 
 // Placeholder for API routes (to be added later)
