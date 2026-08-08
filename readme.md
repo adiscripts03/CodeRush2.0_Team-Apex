@@ -136,7 +136,7 @@ flowchart TB
 
 ```mermaid
 flowchart TD
-    START["Historical Disaster Event"] --> DATA["Load Historical Data"]
+    START["Disaster Event"] --> DATA["Load Data"]
 
     DATA --> SAT["Satellite Flood Extent"]
     DATA --> INFRA["Infrastructure Data"]
@@ -221,7 +221,7 @@ flowchart LR
 
 ---
 
-## 📡 Historical Hazard Replay
+## 📡 Hazard Replay
 
 ```mermaid
 sequenceDiagram
