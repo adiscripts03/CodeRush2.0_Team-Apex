@@ -6,6 +6,8 @@ import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
 import 'leaflet.markercluster'
 import { db } from './lib/supabase'
 import { apiUrl } from '../lib/api'
+import { x402Fetch } from '../lib/x402Client.js'
+
 
 delete (L.Icon.Default.prototype as unknown as Record<string,unknown>)._getIconUrl
 L.Icon.Default.mergeOptions({ iconUrl:'', shadowUrl:'', iconRetinaUrl:'' })
@@ -327,7 +329,7 @@ async function overpassQuery(q:string,timeoutMs=28000):Promise<Place[]> {
   try {
     const ctrl=new AbortController()
     const t=setTimeout(()=>ctrl.abort(),timeoutMs)
-    const res=await fetch(apiUrl('/api/proxy/overpass'),{
+    const res=await x402Fetch(apiUrl('/api/proxy/overpass'),{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({query:q}),
@@ -404,7 +406,7 @@ async function fetchKeralaDistrictBoundaries():Promise<DistrictBoundary[]> {
   try {
     const q=`[out:json][timeout:35];area["ISO3166-2"="IN-KL"]["admin_level"="4"]->.k;relation["admin_level"="6"]["boundary"="administrative"](area.k);out geom;`
     const ctrl=new AbortController(); setTimeout(()=>ctrl.abort(),35000)
-    const res=await fetch(apiUrl('/api/proxy/overpass'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:q}),signal:ctrl.signal})
+    const res=await x402Fetch(apiUrl('/api/proxy/overpass'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:q}),signal:ctrl.signal})
     const d=await res.json()
     return ((d.elements||[]) as Record<string,unknown>[]).map(rel=>{
       const tags=rel.tags as Record<string,string>
@@ -1490,7 +1492,7 @@ async function fetchDelhiPlaces():Promise<{hospitals:Place[];schools:Place[]}> {
   async function overpassQ(q:string):Promise<Place[]> {
     try {
       const ctrl=new AbortController();setTimeout(()=>ctrl.abort(),18000)
-      const res=await fetch(apiUrl('/api/proxy/overpass'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:q}),signal:ctrl.signal})
+      const res=await x402Fetch(apiUrl('/api/proxy/overpass'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:q}),signal:ctrl.signal})
       const d=await res.json()
       return (d.elements||[]).filter((e:Record<string,unknown>)=>e.lat||e.center).map((e:Record<string,unknown>)=>{
         const lat=(e.lat||(e.center as Record<string,number>)?.lat) as number

@@ -9,6 +9,7 @@ import approvalRoutes from './routes/approvalRoutes.js';
 import alertRoutes from './routes/alertRoutes.js';
 import agenticRoutes from './routes/agenticRoutes.js';
 import proxyRoutes from './routes/proxyRoutes.js';
+import { x402Middleware } from './middleware/x402.js';
 
 const app = express();
 
@@ -25,6 +26,10 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+// Apply x402 payment wrapper to all API routes
+app.use('/api', x402Middleware);
+
 
 // Placeholder for API routes (to be added later)
 // app.use('/api/v1/auth', authRoutes);
