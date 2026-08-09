@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { ActivityLogProvider } from './lib/activityLogger';
 import { AppProvider, useApp } from './state/AppContext';
+import { WalletProvider, useWallet } from './lib/walletContext';
 import Navbar from './components/Navbar';
+import PaymentModal from './components/PaymentModal';
 import CommandCentre from './pages/CommandCentre';
 import CommandMap from './pages/CommandMap';
 import NewStuffApp from './newstuff/App';
@@ -12,6 +14,38 @@ import AlertCentre from './pages/AlertCentre';
 import SensorMap from './pages/SensorMap';
 import SeismicMap from './pages/SeismicMap';
 import EvaluationReport from './pages/EvaluationReport';
+import { createWalletClient, custom } from 'viem';
+import { baseSepolia, base } from 'viem/chains';
+
+/**
+ * Bridge component to expose the wallet client globally for x402Client.js
+ * (The x402 client callbacks need access to the wallet client, but they run
+ * outside React's component tree. This bridge syncs the React state to a
+ * global reference that x402Client.js can access.)
+ */
+function WalletBridge() {
+  const { address, walletClient } = useWallet();
+
+  useEffect(() => {
+    if (walletClient) {
+      window._x402WalletClient = walletClient;
+    } else if (address && window.ethereum) {
+      // Create a wallet client if the context hasn't provided one yet
+      const targetChainId = import.meta.env.VITE_X402_NETWORK === 'eip155:8453' ? 8453 : 84532;
+      const chain = targetChainId === 8453 ? base : baseSepolia;
+      const client = createWalletClient({
+        account: address,
+        chain,
+        transport: custom(window.ethereum),
+      });
+      window._x402WalletClient = client;
+    } else {
+      window._x402WalletClient = null;
+    }
+  }, [address, walletClient]);
+
+  return null;
+}
 
 function MainLayout() {
   const { isSidebarExpanded } = useApp();
@@ -49,12 +83,16 @@ function MainLayout() {
 
 export default function App() {
   return (
-    <ActivityLogProvider>
-      <AppProvider>
-        <Router>
-          <MainLayout />
-        </Router>
-      </AppProvider>
-    </ActivityLogProvider>
+    <WalletProvider>
+      <ActivityLogProvider>
+        <AppProvider>
+          <Router>
+            <WalletBridge />
+            <PaymentModal />
+            <MainLayout />
+          </Router>
+        </AppProvider>
+      </ActivityLogProvider>
+    </WalletProvider>
   );
 }

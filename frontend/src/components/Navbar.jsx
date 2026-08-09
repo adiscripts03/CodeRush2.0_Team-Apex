@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, MapPin, ClipboardCheck, History, Bell, Activity, Zap, ChevronLeft, ChevronRight, TrendingUp, Wifi, WifiOff } from 'lucide-react';
 import { useApp } from '../state/AppContext';
+import WalletButton from './WalletButton';
 
 export default function Navbar() {
   const { currentKeyframe, recommendedActions, actionStates, activeAlerts, isSidebarExpanded, toggleSidebar, isOffline, toggleOffline } = useApp();
@@ -132,8 +133,17 @@ export default function Navbar() {
         </nav>
       </div>
       
+      {/* Wallet Connection */}
+      <div className="w-full mt-auto pt-4 border-t border-slate-100 space-y-3">
+        {isSidebarExpanded && (
+          <div className="flex justify-center">
+            <WalletButton />
+          </div>
+        )}
+      </div>
+
       {/* Offline Mode Toggle at Bottom */}
-      <div className="w-full mt-auto pt-4 border-t border-slate-100 flex justify-center">
+      <div className="w-full pt-3 border-t border-slate-100 flex justify-center">
         <button
           onClick={toggleOffline}
           title={isOffline ? "Reconnect to Network" : "Simulate Offline Mode"}

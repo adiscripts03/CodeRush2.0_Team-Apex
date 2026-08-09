@@ -18,5 +18,13 @@ export const env = {
     port: process.env.SMTP_PORT,
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
-  }
+  },
+  // x402 payment protocol configuration
+  x402: {
+    enabled: process.env.X402_ENABLED !== 'false',
+    network: process.env.X402_NETWORK || 'eip155:84532',
+    payTo: process.env.X402_PAY_TO || '',
+    asset: process.env.X402_ASSET || '',
+    facilitatorUrl: process.env.X402_FACILITATOR_URL || '',
+  },
 };

@@ -1,6 +1,5 @@
 import * as turf from '@turf/turf';
-import { apiUrl } from './api';
-import { x402Fetch } from './x402Client.js';
+import { apiFetch } from './api';
 
 
 /**
@@ -191,7 +190,7 @@ export function generateEvacuationPlan({ atRiskHospitals, atRiskShelters, safeSh
 // The existing human-in-the-loop Approve/Reject gate is fully preserved.
 export async function generateAgenticPlan({ atRiskHospitals, atRiskShelters, safeShelters, shelterCapacities }) {
   try {
-    const response = await x402Fetch(apiUrl('/api/agentic-plan'), {
+    const response = await apiFetch('/api/agentic-plan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
