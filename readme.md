@@ -1,5 +1,7 @@
 🏆 HACKATHON ACHIEVEMENT
+
 🥈 1ST RUNNER-UP — CODERUSH 2.0
+
 🚨 SURAKSHA SETU
 
 Team Apex ! proudly secured the 🥈 1st Runner-Up position at CodeRush 2.0, organized by Yeshwantrao Chavan College of Engineering (YCCE), Nagpur.
@@ -7,11 +9,17 @@ Team Apex ! proudly secured the 🥈 1st Runner-Up position at CodeRush 2.0, org
 💰 ₹25,000 CASH PRIZE
 
 🏆 Achievement: 1st Runner-Up
+
 💰 Prize: ₹25,000
+
 🏫 Competition: CodeRush 2.0
+
 🎓 Organized by: Yeshwantrao Chavan College of Engineering (YCCE), Nagpur
+
 🚨 Project: Suraksha Setu
+
 👥 Team: Apex !
+
 👑 Team Leader: Aditya Singh
 
 🚨 ABOUT SURAKSHA SETU
