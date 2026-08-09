@@ -1,49 +1,53 @@
-🏆 HACKATHON ACHIEVEMENT
+# Suraksha Setu
 
-🥈 1ST RUNNER-UP — CODERUSH 2.0
+**Disaster Management & Response Platform**
 
-Team Apex ! proudly secured the 🥈 1st Runner-Up position at CodeRush 2.0, organized by Yeshwantrao Chavan College of Engineering (YCCE), Nagpur.
+Suraksha Setu helps authorities efficiently issue emergency alerts, coordinate evacuations, manage disaster response, and support affected communities during recovery and rehabilitation. The project focuses on building a faster, safer, and more coordinated disaster-response ecosystem, bridging the gap between authorities and citizens during critical situations.
 
-Project Name - Suraksha Setu
+## 🏆 Hackathon Achievement
 
-Team Name - Team Apex! 
+🥈 **1st Runner-Up — CodeRush 2.0**
 
-Team Leader - Aditya Singh
+Team Apex! proudly secured the 1st Runner-Up position at CodeRush 2.0, organized by Yeshwantrao Chavan College of Engineering (YCCE), Nagpur.
 
-🚨 ABOUT SURAKSHA SETU
+| | |
+|---|---|
+| **Project Name** | Suraksha Setu |
+| **Team Name** | Team Apex! |
+| **Team Leader** | Aditya Singh |
 
-Suraksha Setu is a Disaster Management & Response Platform designed to help authorities efficiently issue emergency alerts, coordinate evacuations, manage disaster response, and support affected communities during recovery and rehabilitation.
-
-The project focuses on building a faster, safer, and more coordinated disaster-response ecosystem, bridging the gap between authorities and citizens during critical situations.
+---
 
 ## 🌟 Key Features
 
-1. **Real-Time Detection & Hazard Tracking**
-   - Interactive horizontal scrubber driven by satellite keyframes (capturing event onset, data gaps, and peak hazard footprints).
-   - Dynamic **Confidence Indicators** (numeric 0.0–1.0 and visual tags).
-   - **Data-Gap Banner Warning** explicitly alerting users when satellite coverage is unavailable and models interpolate growth.
+### 1. Real-Time Detection & Hazard Tracking
+- Interactive horizontal scrubber driven by satellite keyframes (capturing event onset, data gaps, and peak hazard footprints).
+- Dynamic **Confidence Indicators** (numeric 0.0–1.0 and visual tags).
+- **Data-Gap Banner Warning** explicitly alerting users when satellite coverage is unavailable and models interpolate growth.
 
-2. **Evacuation Planning & Decision Support (Human-in-the-Loop)**
-   - Rule-based decision generator (`src/lib/planGenerator.js`) calculating nearest safe relief shelters with available capacity and routing vectors.
-   - **Human-in-the-Loop Framework**: Action cards require explicit commander review with **Approve**, **Edit Directives**, or **Reject** choices. Unapproved recommendations remain strictly labeled as draft directives.
+### 2. Evacuation Planning & Decision Support (Human-in-the-Loop)
+- Rule-based decision generator (`src/lib/planGenerator.js`) calculating nearest safe relief shelters with available capacity and routing vectors.
+- **Human-in-the-Loop Framework**: Action cards require explicit commander review with **Approve**, **Edit Directives**, or **Reject** choices. Unapproved recommendations remain strictly labeled as draft directives.
 
-3. **Geospatial Impact Analysis (Turf.js)**
-   - Calculates flooded surface area in hectares.
-   - Identifies at-risk hospitals and submerged road networks.
+### 3. Geospatial Impact Analysis (Turf.js)
+- Calculates flooded surface area in hectares.
+- Identifies at-risk hospitals and submerged road networks.
 
-4. **Activity Audit Stream**
-   - Timestamped log capturing satellite timeline scrubbing, plan generation, human approval actions, and emergency alert dispatches.
+### 4. Activity Audit Stream
+- Timestamped log capturing satellite timeline scrubbing, plan generation, human approval actions, and emergency alert dispatches.
 
-5. **Emergency Alert Center**
-   - Minimal Express backend endpoint (`POST /api/send-alert`) for transmitting emergency transactional alerts to district response command nodes.
+### 5. Emergency Alert Center
+- Minimal Express backend endpoint (`POST /api/send-alert`) for transmitting emergency transactional alerts to district response command nodes.
 
 ---
 
 ## 📊 Data Provenance & Credits
 
-- **Satellite Flood Extents**: Dartmouth Flood Observatory (DFO) / Sentinel-1 SAR observations.
-- **Infrastructure (Hospitals, Shelters, Roads, Rivers)**: Sourced from [OpenStreetMap](https://www.openstreetmap.org/) via Overpass API under the Open Database License (ODbL).
-- **Operational Datasets**: Reservoir levels (`sensor_log.json`) and shelter capacity limits (`shelters_capacity.json`) are integrated data feeds for live operational deployment.
+| Data Type | Source |
+|---|---|
+| Satellite Flood Extents | Dartmouth Flood Observatory (DFO) / Sentinel-1 SAR observations |
+| Infrastructure (Hospitals, Shelters, Roads, Rivers) | [OpenStreetMap](https://www.openstreetmap.org/) via Overpass API, under the Open Database License (ODbL) |
+| Operational Datasets | Reservoir levels (`sensor_log.json`) and shelter capacity limits (`shelters_capacity.json`), integrated as live operational data feeds |
 
 ---
 
@@ -265,6 +269,8 @@ sequenceDiagram
     UI->>Audit: Record timeline interaction
     Analysis->>Audit: Record analysis result
 ```
+
+---
 
 ## 📁 Directory Structure
 
