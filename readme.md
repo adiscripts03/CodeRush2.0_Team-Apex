@@ -1,6 +1,24 @@
-# Suraksha Setu
+🏆 HACKATHON ACHIEVEMENT
+🥈 1ST RUNNER-UP — CODERUSH 2.0
+🚨 SURAKSHA SETU
 
----
+Team Apex ! proudly secured the 🥈 1st Runner-Up position at CodeRush 2.0, organized by Yeshwantrao Chavan College of Engineering (YCCE), Nagpur.
+
+💰 ₹25,000 CASH PRIZE
+
+🏆 Achievement: 1st Runner-Up
+💰 Prize: ₹25,000
+🏫 Competition: CodeRush 2.0
+🎓 Organized by: Yeshwantrao Chavan College of Engineering (YCCE), Nagpur
+🚨 Project: Suraksha Setu
+👥 Team: Apex !
+👑 Team Leader: Aditya Singh
+
+🚨 ABOUT SURAKSHA SETU
+
+Suraksha Setu is a Disaster Management & Response Platform designed to help authorities efficiently issue emergency alerts, coordinate evacuations, manage disaster response, and support affected communities during recovery and rehabilitation.
+
+The project focuses on building a faster, safer, and more coordinated disaster-response ecosystem, bridging the gap between authorities and citizens during critical situations.
 
 ## 🌟 Key Features
 
