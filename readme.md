@@ -5,7 +5,9 @@
 Team Apex ! proudly secured the 🥈 1st Runner-Up position at CodeRush 2.0, organized by Yeshwantrao Chavan College of Engineering (YCCE), Nagpur.
 
 Project Name - Suraksha Setu
+
 Team Name - Team Apex! 
+
 Team Leader - Aditya Singh
 
 🚨 ABOUT SURAKSHA SETU
